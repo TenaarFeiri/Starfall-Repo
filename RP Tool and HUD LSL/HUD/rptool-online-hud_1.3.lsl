@@ -25,7 +25,7 @@ list buttonsOne = [
     "5|roll|6a3a5609-cfb9-58e4-8120-a8084abff5e3",
     "2|changetitle|3f220111-15c4-0c9b-74bf-5225fc06b6fe",
     "3|changeconstant|65e73037-7b7c-57bf-f16c-0d235f3c0c6c",
-    "4|reset|1b19ae47-4f01-8531-52a9-9bcb094553d3"
+    "4|help|cb12dfb9-b105-58ad-5eb5-f20e122b5e43"
 
 ];
 
@@ -35,7 +35,7 @@ list buttonsTwo = [
     "6|resetcharacter|b0f02d06-e868-aca0-a8dc-79830f665d3d",
     "5|support|d6d0ee73-5bbd-22b9-6d3d-041becb22b51",
     "2|percent|c31e66ac-4afb-5df5-f2dc-0a74f1d157f8",
-    "3|help|cb12dfb9-b105-58ad-5eb5-f20e122b5e43",
+    "3|reset|1b19ae47-4f01-8531-52a9-9bcb094553d3",
     "4|deletecharacter|7abdbe3a-819a-9319-3485-723f900af59f"
     
 
