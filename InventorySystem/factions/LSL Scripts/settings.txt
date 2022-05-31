@@ -1,0 +1,3 @@
+Npc id: 1
+Npc faction: 0
+Npc timeout: 120
