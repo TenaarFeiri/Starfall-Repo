@@ -202,13 +202,13 @@ class personal {
     {
         $stmt = "SELECT titles FROM rp_tool_character_repository WHERE character_id = :id";
         $rptool = connectToRPTool();
-        $run = $this->rptool->prepare($stmt);
+        $run = $rptool->prepare($stmt);
         $run->bindParam(":id", $this->charid);
         if($run->execute())
         {
             $run = $run->fetch(\PDO::FETCH_ASSOC);
             $out;
-			$arr = explode("=>", $data[1]);
+			$arr = explode("=>", $run['titles']);
 			$out = $arr[0];
 			return $out;
         }
@@ -477,62 +477,6 @@ class personal {
             }
         }
         return false;
-    }
-
-    function calculateTradeTargetInventorySpace($targetChar, $itemId, $amount)
-    {
-        // Calculate inventory space to see if target character has enough space.
-        $itemDetails = $this->getItemDetails($itemId);
-        $inventoryArray = $this->getInventoryArray($targetChar);
-        $i = 1; // Track which item slot we're adding to.
-        $empty = 0;
-        foreach($inventoryArray as $item)
-        {
-            $tmp = explode(":", $item); // Split result into an array...
-            if($tmp[0] != 0) // If inventory slot is not empty, find item ID.
-            {
-                if($tmp[0] == $itemId)
-                {
-                    // If item ID exists, count items.
-                    $calcAmount = ($tmp[1] + $amount);
-                    if($calcAmount > $itemDetails['max_stack'])
-                    {
-                        die("err:Cannot give $amount of " . $itemDetails['name'] . "; they don't have enough room.");
-                    }
-                }
-                else if($tmp[0] == 0)
-                {
-                    ++$empty;
-                }
-            }
-            ++$i;
-        }
-        // If we got this far, we are gucci.
-        // Make sure that there are empty slots to add to.
-        if($empty < 0)
-        {
-            die("err:Cannot give $amount of " . $itemDetails['name'] . "; they have no inventory slots.");
-        }
-        // If we got here, we are good to return true!
-        // Not that it REALLY matters as we're using die() to kill the whole program over the slightest error.
-        return true;
-    }
-
-    function getTradeTarget($target)
-    {
-        $stmt = "SELECT lastchar FROM users WHERE uuid = ?";
-        $qObj = connectToRptool();
-        $q = $qObj->prepare($stmt);
-        if(!$q->execute([$target]))
-        {
-            die("err:Could not get trade target.");
-        }
-        $q = $q->fetch();
-        return $q[0];
-    }
-    function tradeItem($data, $target)
-    {
-
     }
 }
 ?>
