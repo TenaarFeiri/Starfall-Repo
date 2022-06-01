@@ -291,8 +291,11 @@ default
         {
             if(deleting)
             {
-                string n = llGetSubString(body, 0, llSubStringIndex(body, ":::"));
-                body = llStringTrim(llGetSubString(body, llSubStringIndex(body, ":::"), (llSubStringIndex(body, ":::") + 2)));
+                list tmp = llParseString2List(body, [":::"],[]);
+                string n = llList2String(tmp, 0);
+                body = llList2String(tmp, 1);
+                n = llGetSubString(n, (llSubStringIndex(n, ":") + 1), -1);
+                n = llStringTrim(n, STRING_TRIM);
                 llSay(0, n + " destroyed " + (string)deleteNum + "x " + llList2String(names, selected) + ".");
                 llSetTimerEvent(0.2);
             }
