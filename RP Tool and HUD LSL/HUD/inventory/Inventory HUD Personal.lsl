@@ -291,7 +291,9 @@ default
         {
             if(deleting)
             {
-                llSay(0, body + " destroyed " + (string)deleteNum + "x " + llList2String(names, selected) + ".");
+                string n = llGetSubString(body, 0, llSubStringIndex(body, ":::"));
+                body = llStringTrim(llGetSubString(body, llSubStringIndex(body, ":::"), (llSubStringIndex(body, ":::") + 2)));
+                llSay(0, n + " destroyed " + (string)deleteNum + "x " + llList2String(names, selected) + ".");
                 llSetTimerEvent(0.2);
             }
             parseInventory(body);
