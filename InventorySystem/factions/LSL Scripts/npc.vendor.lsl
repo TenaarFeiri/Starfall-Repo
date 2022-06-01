@@ -142,38 +142,48 @@ default
     {
         if(!llAgentInExperience(llDetectedKey(0)))
         {
+            llRegionSayTo(llDetectedKey(0), 0, "((You're not in the sim experience & cannot use this NPC. To join, find a RP tool redelivery dispenser somewhere and touch it & accept the requested experience, or accept the experience when teleporting into the sim 15 seconds or more after jumping out.))");
             return;
         }
         if(user != "" && llDetectedKey(0) != user)
         {
-            llDialog(llDetectedKey(0), "Sorry; I'm busy with a client right now. Please wait a moment!", ["OK"], -1);
+            llDialog(llDetectedKey(0), "Sorry; I'm busy with someone else right now. Please wait a moment!", ["OK"], -1);
             return;
         }
         else if(user == "" || llDetectedKey(0) == user)
         {
             resetAll();
         }
+        llSetTimerEvent(timeout);
         user = llDetectedKey(0);
         llSensor("", user, AGENT, 5.0, PI);
+    }
+    changed(integer change)
+    {
+        if(change & CHANGED_OWNER)
+        {
+            llResetScript();
+        }
+        else if(change & CHANGED_REGION_START)
+        {
+            llResetScript();
+        }
+        else if(change & CHANGED_INVENTORY)
+        {
+            llWhisper(0, "Inventory change detected. Resetting...");
+            llResetScript();
+        }
     }
     sensor(integer detected)
     {
         menuChannel = Key2AppChan(user, (integer)llFrand(100 + llFrand(100)));
         menuListener = llListen(menuChannel, "", user, "");
-        npcVendorGeneral = ping("usr="+(string)user+"&npc&func=npcVendor&action=showBlurb,0");
         llSetTimerEvent(timeout);
+        npcVendorGeneral = ping("usr="+(string)user+"&npc&func=npcVendor&action=showBlurb,0");
     }
     timer()
     {
         resetAll();
-    }
-    changed(integer change)
-    {
-        if(change & CHANGED_INVENTORY)
-        {
-            llWhisper(0, "Inventory change detected. Resetting...");
-            llResetScript();
-        }
     }
     listen(integer c, string n, key id, string m)
     {
@@ -197,6 +207,8 @@ default
                 }
                 if(cmd == "viewGoods" || ~llSubStringIndex(cmd, "viewGoods,"))
                 {
+                    llSetTimerEvent(timeout);
+                    mode = 2;
                     if(~llSubStringIndex(cmd, "viewGoods,"))
                     {
                         list tmp = llParseString2List(cmd, [","], []);
@@ -207,8 +219,6 @@ default
                     {
                         npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=viewGoods," + (string)viewGoodsPage);
                     }
-                    llSetTimerEvent(timeout);
-                    mode = 2;
                 }
                 else if(~llSubStringIndex(cmd, "showBlurb,"))
                 {
@@ -219,6 +229,7 @@ default
                         resetAll();
                         return;
                     }
+                    llSetTimerEvent(timeout);
                     npcVendorGeneral = ping("usr="+(string)user+"&npc&func=npcVendor&action="+cmd);
                 }
             }
