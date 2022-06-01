@@ -291,7 +291,7 @@ default
         {
             if(deleting)
             {
-                llOwnerSay("Destroyed " + (string)deleteNum + "x " + llList2String(names, selected) + ".");
+                llSay(0, body + " destroyed " + (string)deleteNum + "x " + llList2String(names, selected) + ".");
                 llSetTimerEvent(0.2);
             }
             parseInventory(body);
