@@ -369,7 +369,7 @@ if($arr['func'] == "personal")
         $tmpArr = explode(":", $arr['data']);
         if($personalObj->removeItem($tmpArr[0], $tmpArr[1]))
         {
-            echo "destroyed:" $personalObj->getCharName();
+            echo "destroyed:" . $personalObj->getCharName();
             $log = 'Destroyed '.$tmpArr[1].'x '.$personalObj->getItemDetails($tmpArr[0])['name'].' (ID: '.$tmpArr[0].')';
             writeLog($headerData['username'], $headerData['uuid'], $charId, $arr['func'], $log);
         }
