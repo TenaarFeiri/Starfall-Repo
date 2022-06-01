@@ -181,6 +181,10 @@ default
         llSetTimerEvent(timeout);
         npcVendorGeneral = ping("usr="+(string)user+"&npc&func=npcVendor&action=showBlurb,0");
     }
+    no_sensor()
+    {
+        resetAll();
+    }
     timer()
     {
         resetAll();
