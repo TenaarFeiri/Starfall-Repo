@@ -205,7 +205,7 @@ default
                 string cmd = llList2String(commands, pos);
                 if(cmd == "exit")
                 {
-                    llDialog(user, "Goodbye!", ["OK"], -1);
+                    //llDialog(user, "Goodbye!", ["OK"], -1);
                     resetAll();
                     return;
                 }
@@ -345,7 +345,8 @@ default
         }
         else if(factionChk)
         {
-            llDialog(user, llGetSubString(body, (llSubStringIndex(body, ":") + 1), -1), ["Oh, okay..."], -1);
+            llRegionSayTo(user, 0, llGetSubString(body, (llSubStringIndex(body, ":") + 1), -1));
+            llDialog(user, "Choose an option", ["Oh, okay..."], -1);
             resetAll();
             return;
         }
@@ -360,7 +361,8 @@ default
             llSetObjectName(llList2String(npcData, 0));
             updateNpcData(llList2String(tmp, 2), 1); // Add dialogue options.
             updateNpcData(llList2String(tmp, 3), 2); // Dialogue commands.
-            llDialog(user, llList2String(tmp, 1), order_buttons(llParseString2List(llList2String(npcData, 1), [":"], [])), menuChannel);
+            llRegionSayTo(user, 0, llList2String(tmp, 1));
+            llDialog(user, "Choose an option", order_buttons(llParseString2List(llList2String(npcData, 1), [":"], [])), menuChannel);
             llSetTimerEvent(timeout);
         }
         else if(request_id == npcVendorViewItem)
@@ -398,11 +400,15 @@ default
             {
                 if(llList2String(tmp, 0) == "purchase")
                 {
+                    llSetObjectName("");
                     llRegionSayTo(user, 0, "You have bought " + llList2String(tmp, 2) + "x " + llList2String(tmp, 3) + " from "+llList2String(npcData, 0)+".");
+                    llSetObjectName(llList2String(npcData, 0));
                 }
                 else if(llList2String(tmp, 0) == "sale")
                 { //"sale&&success&&" . $this->npcActionArr[2] . "&&" . $item['name'] . "&&" . $total;
+                    llSetObjectName("");
                     llRegionSayTo(user, 0, "You have sold " + llList2String(tmp, 2) + "x " + llList2String(tmp, 3) + " to "+llList2String(npcData, 0)+", for " + llList2String(tmp, 4) + " Crowns.");
+                    llSetObjectName(llList2String(npcData, 0));
                 }
                 sendMessageToTarget("::readyUpdate::" + (string)user, user);
                 llSleep(0.2);

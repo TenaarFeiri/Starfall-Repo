@@ -29,6 +29,8 @@ integer instantiated = FALSE;
 integer reset;
 integer resetting = FALSE;
 integer timeout = 120;
+integer rezzedGame;
+integer gameCooldown;
 //////////////////////////////////////////
 // LINKED MESSAGE INTEGERS
 /////////////////////////////////////////
@@ -79,9 +81,12 @@ list paginate( integer vIdxPag, list gLstMnu ){
 }
 list menu = ["Trade",
 "Destroy",
-"Craft",
 "Check Gather",
 "Close"
+];
+list minigames = [
+    "Berserker",
+    "Close"
 ];
 integer menuChan;
 integer menuHandler;
@@ -128,6 +133,11 @@ default
             llListenRemove(menuHandler); // Kill the menu listener.
             menuChan = FALSE; // Unassign menuChan until we need it again.
             //llOwnerSay("Inventory menu timed out.");
+        }
+        if(llGetUnixTime() > gameCooldown && rezzedGame == 2)
+        {
+            gameCooldown = 0;
+            rezzedGame = 0;
         }
     }
     
@@ -232,7 +242,18 @@ default
             }
             else
             {
-                if(m == "Trade")
+                if(rezzedGame == 1)
+                {
+                    list deets = llGetObjectDetails(llGetOwner(), [OBJECT_ROT]);
+                    rotation myRot = (rotation)llList2String(deets, 0);
+                    vector myPos = llGetPos();
+                    vector inFront = myPos + <1.2,0,-0.3>*myRot;
+                    llRegionSay(-59823, "rezgame:"+m+":" + (string)inFront + ":" + (string)myRot);
+                    rezzedGame = 2;
+                    gameCooldown = (llGetUnixTime() + (5*60));
+                    llSetTimerEvent(timeout);
+                }
+                else if(m == "Trade")
                 {
                     llMessageLinked(LINK_THIS, tradeNum, "::starttransaction::", NULL_KEY);
                 }
@@ -240,9 +261,20 @@ default
                 {
                     llMessageLinked(LINK_THIS, tradeNum, "::startdeletion::", NULL_KEY);
                 }
-                else if(m == "Craft")
+                else if(m == "Minigames")
                 {
-                    llOwnerSay("Crafting is not yet implemented.");
+                    if(rezzedGame == 2 && llGetUnixTime() < gameCooldown)
+                    {
+                        llOwnerSay("You have recently rezzed a game & cannot rez one again for 5 minutes after rezzing.");
+                        return;
+                    }
+                    else if(llGetUnixTime() > gameCooldown)
+                    {
+                        rezzedGame = FALSE;
+                        gameCooldown = FALSE;
+                    }
+                    rezzedGame = 1;
+                    llDialog(llGetOwner(), "Which game would you like to play?", minigames, menuChan);
                 }
                 else if(m == "Check Gather")
                 {
