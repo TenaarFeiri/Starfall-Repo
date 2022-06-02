@@ -361,8 +361,13 @@ default
             llSetObjectName(llList2String(npcData, 0));
             updateNpcData(llList2String(tmp, 2), 1); // Add dialogue options.
             updateNpcData(llList2String(tmp, 3), 2); // Dialogue commands.
+            string emote = llList2String(tmp, 4);
+            if(emote == "")
+            {
+                emote = " ";
+            }
             llRegionSayTo(user, 0, llList2String(tmp, 1));
-            llDialog(user, llList2String(tmp, 4), order_buttons(llParseString2List(llList2String(npcData, 1), [":"], [])), menuChannel);
+            llDialog(user, emote, order_buttons(llParseString2List(llList2String(npcData, 1), [":"], [])), menuChannel);
             llSetTimerEvent(timeout);
         }
         else if(request_id == npcVendorViewItem)
