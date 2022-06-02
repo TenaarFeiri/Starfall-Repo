@@ -362,7 +362,7 @@ default
             updateNpcData(llList2String(tmp, 2), 1); // Add dialogue options.
             updateNpcData(llList2String(tmp, 3), 2); // Dialogue commands.
             llRegionSayTo(user, 0, llList2String(tmp, 1));
-            llDialog(user, "Choose an option", order_buttons(llParseString2List(llList2String(npcData, 1), [":"], [])), menuChannel);
+            llDialog(user, llList2String(tmp, 0), order_buttons(llParseString2List(llList2String(npcData, 1), [":"], [])), menuChannel);
             llSetTimerEvent(timeout);
         }
         else if(request_id == npcVendorViewItem)
