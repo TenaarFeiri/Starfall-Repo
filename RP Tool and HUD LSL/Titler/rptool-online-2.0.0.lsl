@@ -3,6 +3,7 @@ string version = "2.0.0";
 
 integer commandChannel = 1;
 integer hud_channel;
+integer faction_channel;
 integer debug = FALSE;
 integer loaded = FALSE; 
 integer charid = 0;
@@ -84,7 +85,7 @@ sendDataToServer(string data)
     onlineCommsKey = llHTTPRequest(serverURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "version="+ (string)version + data);
     if(manualSave)
     {
-        llOwnerSay("Character \"" + stripTags(charname) +"\" has been attempted manually saved to server. If this failed, please contact Tenaar Feiri by notecard.");
+        llOwnerSay("Character \"" + stripTags(charname) +"\" has been attempted manually saved to server. Under normal circumstances, the RP tool autosaves 10 seconds after last change. If this backup solution failed, please contact Tenaar Feiri by notecard.");
         manualSave = FALSE;
     }
 }
@@ -174,6 +175,7 @@ default
             return;
         }
         hud_channel = Key2AppChan(llGetOwner(), 1337);
+        faction_channel = Key2AppChan(llGetOwner(), 1338);
         llListen(hud_channel, "", "", "");
         fullReset();
         llSetText("", <0,0,0>, 0);
@@ -192,7 +194,15 @@ default
             // Do nothing if we're not attached.
             return;
         }
-        if(llGetOwner() == id || (llGetOwnerKey(id) == llGetOwner() && llList2String(llGetObjectDetails(id, [OBJECT_DESC]), 0) == "rptool-hud"))
+        if(chan == faction_channel)
+        {
+            list tmp = llParseString2List(message, ["::"],[]);
+            if(llList2String(tmp, 0) == "factionupdate" && llList2String(tmp, 1) == (string)llGetOwner()) // Update faction when someone's HUD informs the RP tool that their faction status has changed.
+            {
+                factionKey = llHTTPRequest(factionURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "status&func=whoAmI&usr=" + llGetOwner());
+            }
+        }
+        else if(llGetOwner() == id || (llGetOwnerKey(id) == llGetOwner() && llList2String(llGetObjectDetails(id, [OBJECT_DESC]), 0) == "rptool-hud"))
         {
             if(chan == loadChan)
             {
@@ -206,8 +216,7 @@ default
                 else if(llToLower(message) == "<--")
                 {
                     if(charpage > 1)
-                    {
-                        
+                    {                       
                         charpage = (charpage - 1);
                     }
                     
@@ -338,11 +347,6 @@ default
                 }
                 else if(llToLower(message) == "load")
                 {
-                    
-                    
-                    
-                    
-                    
                     charpage = 1;
                     loadChan = key2AppChan(llGetKey(), (integer)llFrand(200.0));
                     loadChanHandler = llListen(loadChan, "", llGetOwner(), "");
@@ -467,7 +471,7 @@ llSetTimerEvent(5);
             {
                 sendDataToServer(data);
             }
-        } 
+        }
     }
 
     timer()
@@ -597,6 +601,12 @@ llSetTimerEvent(5);
                 llOwnerSay(temporary);
             }
             parseReturnValue(body);
+            // Then get faction information, if it exists.
+            factionKey = llHTTPRequest(factionURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "status&func=whoAmI&usr=" + llGetOwner());
+        }
+        else if(id == factionKey)
+        {
+            llMessageLinked(LINK_THIS, 16, body, "");
         }
         else if(id == dicerollKey)
         {

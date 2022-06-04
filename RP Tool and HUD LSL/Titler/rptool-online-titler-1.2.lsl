@@ -672,8 +672,19 @@ default
         }
         else if(num == 16) // Faction Rank Data
         {
-            factionRank = data;
-            setText();
+            if(data == "null")
+            {
+                factionRank = "null";
+            }
+            else
+            {
+                list tmp = llParseString2List(data, ["&&"], []);
+                factionRank = llList2String(tmp, 1) + " " + llList2String(tmp, 2);
+            }
+            setText(); // Then update titler.
+            // This is a pretty dumb way to do it, but I don't want to fuck around with
+            // this code more than I have to. It's ancient and I have very little memory
+            // of how the RP tool works!
         }
 
     }
