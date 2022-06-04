@@ -233,9 +233,9 @@ setText() {
             }
             ++x;
         } while (x<=7);
-        if(factionRank != "null" || factionRank != "")
+        if(factionRank != "null")
         {
-            out = out + "\n" + factionRank;
+            out = out + "\n<" + factionRank + ">";
         }
     }
     else
