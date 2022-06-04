@@ -158,5 +158,20 @@
             $factionMemberAction = new membership($arr['usr']);
             echo $factionMemberAction->removeMemberFromFaction($arr['target'], $arr['faction']);
         }
+        else if($arr['func'] == "getMembers" and !empty($arr['page']) and !empty($arr['faction']))
+        {
+            $factionMemberAction = new membership($arr['usr']);
+            echo $factionMemberAction->getMemberList($arr['faction'], $arr['page']);
+        }
+        else if($arr['func'] == "kickCharacter" and !empty($arr['target']) and !empty($arr['faction']))
+        {
+            $factionMemberAction = new membership($arr['usr']);
+            echo $factionMemberAction->kickMember($arr['target'], $arr['faction']);
+        }
+        else if($arr['func'] == "leaveFaction")
+        {
+            $factionMemberAction = new membership($arr['usr']);
+            echo $factionMemberAction->leaveFaction();
+        }
     }
 ?>

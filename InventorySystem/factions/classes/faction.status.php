@@ -97,6 +97,29 @@ class status
         }
         return true;
     }
+
+    function getAllRankNames($faction)
+    {
+        $stmt = "SELECT id,rank_name FROM faction_ranks WHERE rank_faction = ?";
+        try
+        {
+            $this->connect("inventory");
+            $do = $this->invPdo->prepare($stmt);
+            $do->execute([$faction]);
+            $do = $do->fetchAll(PDO::FETCH_ASSOC);
+            $out = array();
+            foreach($do as $var)
+            {
+                $out[$var['id']] = $var['rank_name'];
+            }
+            return $out;
+        }
+        catch(PDOException $e)
+        {
+            exit($e->getMessage());
+        }
+    }
+
     function createPdoWildcards($arr)
     {
         // Return a string containing number of ?-s needed for programmatically generated PDO queries.
@@ -232,12 +255,11 @@ class status
 
     function whoAmI()
     {
+        if(!$this->character['charFaction'])
+        {
+            return "null";
+        }
         return $this->character['factionData']['name'] . "&&" . $this->character['factionData']['pronoun'] . "&&" . $this->character['factionData']['factionRankData']['rank_name'];
-    }
-
-    function searchMemberList($needle, $faction)
-    {
-        // Search for character in faction.
     }
 
     function getFactionInfo($faction)
