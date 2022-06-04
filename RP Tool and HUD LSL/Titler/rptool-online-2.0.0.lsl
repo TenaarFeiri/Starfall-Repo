@@ -20,10 +20,12 @@ integer charpage = 1;
 string serverURL = "https://neckbeardsanon.xen.prgmr.com/rptool/lismore/rptool-main.php?";
 string diceUrl = "https://neckbeardsanon.xen.prgmr.com/rptool/lismore/diceroll.php?";
 string invUrl =  "https://neckbeardsanon.xen.prgmr.com/rptool/inventory/inventory_handler.php?";
+string factionUrl = "https://neckbeardsanon.xen.prgmr.com/rptool/inventory/factions/faction_handler.php?";
 
 list charList;
 
 key onlineCommsKey;
+key factionKey;
 
 integer settingsChan = 1; 
 integer settingsHandler; 

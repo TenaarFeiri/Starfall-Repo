@@ -26,7 +26,9 @@ float version = 1.2;
     
     Updated: October 22nd, 2021
     Added support for inventory system.
-    Will frequently squawk charid for the inventory object.
+
+    Updated: June 4th, 2022
+    Added support for faction ranks
 */
 
 // VARS \\
@@ -37,7 +39,7 @@ integer dialogChan;
 integer changing; // 1 = title, 2 = const
 integer line;
 integer squawker;
-
+string factionRank = "null";
 list constant = [
     "Name:", // const1
     "Species:", // const2
@@ -231,6 +233,10 @@ setText() {
             }
             ++x;
         } while (x<=7);
+        if(factionRank != "null" || factionRank != "")
+        {
+            out = out + "\n" + factionRank;
+        }
     }
     else
     {
@@ -663,6 +669,11 @@ default
                 llListenRemove(settingsHandler);
                 settingsHandler = llListen(settingsChan, "", "", "");
             }
+        }
+        else if(num == 16) // Faction Rank Data
+        {
+            factionRank = data;
+            setText();
         }
 
     }
