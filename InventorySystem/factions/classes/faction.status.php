@@ -259,6 +259,10 @@ class status
         {
             return "null";
         }
+        else if($this->character['factionData']['id'] != $this->character['factionData']['factionRankData']['rank_faction'])
+        {
+            return "null";
+        }
         return $this->character['factionData']['name'] . "&&" . $this->character['factionData']['pronoun'] . "&&" . $this->character['factionData']['factionRankData']['rank_name'];
     }
 

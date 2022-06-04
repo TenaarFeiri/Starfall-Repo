@@ -96,6 +96,7 @@ parseReturnValue(string body)
     {
         llMessageLinked(LINK_THIS, 14, body, NULL_KEY);
         llListenRemove(loadChanHandler);
+        factionKey = llHTTPRequest(factionURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "status&func=whoAmI&usr=" + (string)llGetOwner()); // Request faction status.
     }
     else if(~llSubStringIndex(body, "charlist:"))
     {
@@ -602,7 +603,6 @@ llSetTimerEvent(5);
             }
             parseReturnValue(body);
             // Then get faction information, if it exists.
-            factionKey = llHTTPRequest(factionURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "status&func=whoAmI&usr=" + (string)llGetOwner());
         }
         else if(id == factionKey)
         {
