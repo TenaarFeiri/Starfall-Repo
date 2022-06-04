@@ -21,7 +21,7 @@ integer charpage = 1;
 string serverURL = "https://neckbeardsanon.xen.prgmr.com/rptool/lismore/rptool-main.php?";
 string diceUrl = "https://neckbeardsanon.xen.prgmr.com/rptool/lismore/diceroll.php?";
 string invUrl =  "https://neckbeardsanon.xen.prgmr.com/rptool/inventory/inventory_handler.php?";
-string factionUrl = "https://neckbeardsanon.xen.prgmr.com/rptool/inventory/factions/faction_handler.php?";
+string factionURL = "https://neckbeardsanon.xen.prgmr.com/rptool/inventory/factions/faction_handler.php?";
 
 list charList;
 
@@ -199,7 +199,7 @@ default
             list tmp = llParseString2List(message, ["::"],[]);
             if(llList2String(tmp, 0) == "factionupdate" && llList2String(tmp, 1) == (string)llGetOwner()) // Update faction when someone's HUD informs the RP tool that their faction status has changed.
             {
-                factionKey = llHTTPRequest(factionURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "status&func=whoAmI&usr=" + llGetOwner());
+                factionKey = llHTTPRequest(factionURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "status&func=whoAmI&usr=" + (string)llGetOwner());
             }
         }
         else if(llGetOwner() == id || (llGetOwnerKey(id) == llGetOwner() && llList2String(llGetObjectDetails(id, [OBJECT_DESC]), 0) == "rptool-hud"))
@@ -602,7 +602,7 @@ llSetTimerEvent(5);
             }
             parseReturnValue(body);
             // Then get faction information, if it exists.
-            factionKey = llHTTPRequest(factionURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "status&func=whoAmI&usr=" + llGetOwner());
+            factionKey = llHTTPRequest(factionURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], "status&func=whoAmI&usr=" + (string)llGetOwner());
         }
         else if(id == factionKey)
         {
