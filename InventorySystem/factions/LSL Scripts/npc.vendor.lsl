@@ -224,15 +224,8 @@ default
                         npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=viewGoods," + (string)viewGoodsPage);
                     }
                 }
-                else if(~llSubStringIndex(cmd, "showBlurb,"))
+                else
                 {
-                    list tmp = llParseString2List(cmd, [","], []);
-                    if(llGetListLength(tmp) > 2)
-                    {
-                        llRegionSayTo(user, 0, "((An error has occurred: Too many parameters in showBlurb. showBlurb supports only one parameter. Please inform staff that this error has occured and which NPC had it.))");
-                        resetAll();
-                        return;
-                    }
                     llSetTimerEvent(timeout);
                     npcVendorGeneral = ping("usr="+(string)user+"&npc&func=npcVendor&action="+cmd);
                 }
