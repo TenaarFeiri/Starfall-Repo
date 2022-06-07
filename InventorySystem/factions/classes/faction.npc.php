@@ -116,7 +116,7 @@ class npc extends status
                 {
                     print_r($factionInfo);
                 }
-                if(!$this->character['charFaction'] or $this->character['charFaction']['char_faction'] != $faction)
+                if($faction != 0 and (!$this->character['charFaction'] or $this->character['charFaction']['char_faction'] != $faction))
                 {
                     exit("err:Sorry, you're not a " . $factionInfo['factionData']['pronoun'] . " and can't use my services.");
                 }

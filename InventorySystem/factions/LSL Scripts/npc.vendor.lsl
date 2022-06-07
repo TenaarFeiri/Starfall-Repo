@@ -209,19 +209,29 @@ default
                     resetAll();
                     return;
                 }
-                if(cmd == "viewGoods" || ~llSubStringIndex(cmd, "viewGoods,"))
+                if(~llSubStringIndex(cmd, "viewGoods"))
                 {
                     llSetTimerEvent(timeout);
                     mode = 2;
+                    list tmp = llParseString2List(cmd, [","], []);
                     if(~llSubStringIndex(cmd, "viewGoods,"))
                     {
-                        list tmp = llParseString2List(cmd, [","], []);
-                        factionChk = TRUE;
-                        npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=viewGoods," + (string)viewGoodsPage + "," + llList2String(tmp, 1));
+                        factionChk = (integer)llList2String(tmp, 1);
+                        if(llGetListLength(tmp) > 3)
+                        {
+                            npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=" + llList2String(tmp,0) + "," + (string)viewGoodsPage + "," + (string)factionChk
+                        + "," + llDumpList2String(llList2List(tmp, 2, -1), ",")
+                        );
+                        }
+                        else
+                        {
+                            npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=" + llList2String(tmp,0) + "," + (string)viewGoodsPage + "," + (string)factionChk
+                            );
+                        }
                     }
                     else
                     {
-                        npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=viewGoods," + (string)viewGoodsPage);
+                        npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=" + llList2String(tmp,0) + "," + (string)viewGoodsPage + "," + (string)factionChk);
                     }
                 }
                 else
@@ -245,12 +255,12 @@ default
                 {
                     --viewGoodsPage;
                     llSetTimerEvent(timeout);
-                    npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=viewGoods," + (string)viewGoodsPage);
+                    npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=viewGoods," + (string)viewGoodsPage + "," + (string)factionChk);
                 }
                 else
                 {
                     llSetTimerEvent(timeout);
-                    npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=viewGoods," + (string)viewGoodsPage);
+                    npcVendorViewItem = ping("usr="+(string)user+"&npc&func=npcVendor&action=viewGoods," + (string)viewGoodsPage + "," + (string)factionChk);
                 }
             }
             else if(m == ">>")
