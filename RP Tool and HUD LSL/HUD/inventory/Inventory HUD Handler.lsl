@@ -82,6 +82,8 @@ list paginate( integer vIdxPag, list gLstMnu ){
 list menu = ["Trade",
 "Destroy",
 "Check Gather",
+"Minigames",
+"Faction",
 "Close"
 ];
 list minigames = [
@@ -279,6 +281,10 @@ default
                 else if(m == "Check Gather")
                 {
                     sendDataToServer("func=personal&input=getGatherCooldown");
+                }
+                else if(m == "Faction")
+                {
+                    llMessageLinked(LINK_THIS, 0, "::openfaction::", NULL_KEY);
                 }
             }
         }
