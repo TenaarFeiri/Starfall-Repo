@@ -196,6 +196,7 @@ default
                 llOwnerSay("Started!");
             }
             llMessageLinked(LINK_SET, persNum, body, "");
+            llMessageLinked(LINK_THIS, 0, "reset", "");
         }
         else if(~llSubStringIndex(body, "cooldown:"))
         {

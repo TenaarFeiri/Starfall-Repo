@@ -75,7 +75,6 @@ class membership extends status
         else
         {
             return "You have added $charName to " . $this->character['factionData']['name'] . ".";
-            //return "success::" . $charName . "::" . $this->character['factionData']['name'];
         }
     }
 
@@ -160,7 +159,6 @@ class membership extends status
             exit("err:" . $e->getMessage());
         }
         return $charName . " has been removed from " . $targetCharacterData['factionData']['name'];
-        //return "success::" . $charName . "::" . $targetCharacterData['factionData']['name'];
     }
 
     function leaveFaction() // Leave your current faction.
@@ -186,7 +184,7 @@ class membership extends status
             $this->invPdo->rollBack();
             exit("err:" . $e->getMessage());
         }
-        return "You have left " . $this->character['factionData']['name'] . ".";
+        return "leaving::You have left " . $this->character['factionData']['name'] . ".";
     }
 
     function getMemberList($faction, $page)

@@ -257,13 +257,13 @@ class status
     {
         if(!$this->character['charFaction'])
         {
-            return "null";
+            return "nofaction::";
         }
         else if($this->character['factionData']['id'] != $this->character['factionData']['factionRankData']['rank_faction'])
         {
-            return "null";
+            return "wrongfaction::";
         }
-        return $this->character['factionData']['name'] . "&&" . $this->character['factionData']['pronoun'] . "&&" . $this->character['factionData']['factionRankData']['rank_name'];
+        return "whoAmI::" . $this->character['factionData']['name'] . "&&" . $this->character['factionData']['pronoun'] . "&&" . $this->character['factionData']['factionRankData']['rank_name'] . "&&" . $this->character['factionData']['id'] . "&&" . $this->character['factionData']['factionRankData']['rank_permissions'];
     }
 
     function getFactionInfo($faction)

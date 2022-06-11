@@ -177,6 +177,7 @@ default
         }
         hud_channel = Key2AppChan(llGetOwner(), 1337);
         faction_channel = Key2AppChan(llGetOwner(), 1338);
+        llListen(faction_channel, "", "", "");
         llListen(hud_channel, "", "", "");
         fullReset();
         llSetText("", <0,0,0>, 0);
