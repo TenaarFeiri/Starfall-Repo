@@ -4,6 +4,15 @@ integer deleteNum;
 integer selected;
 key banker = NULL_KEY;
 integer banking;
+string serverURL = "https://neckbeardsanon.xen.prgmr.com/rptool/inventory/inventory_management_handler.php?";
+key itemData;
+key itemUsage;
+key itemShow;
+integer selectedItem;
+key ping(string data)
+{
+    return llHTTPRequest(serverURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], data);
+}
 list items = [
 "",
 "",
@@ -258,6 +267,8 @@ integer isInteger(string data)
     }
     return FALSE;
 }
+integer echoCh;
+integer echoL;
 default
 {
     state_entry()
@@ -274,7 +285,32 @@ default
         llSetLinkTexture(LINK_THIS, defaultTexture, ALL_SIDES);
         llMessageLinked(LINK_SET, 1, llGetScriptName(), "");
     }
-    
+    http_response(key id, integer status, list metadata, string body)
+    {
+        if(id == itemData)
+        {
+            list tmp = llParseString2List(body, [":::"], []);
+            string cmd = llList2String(tmp, 0);
+            if(cmd == "echo")
+            {
+                list options = ["Show", "Destroy", "Cancel"];
+                if(llList2String(tmp, 5) == "1") // If usable
+                {
+                    options = ["Use"] + options;
+                }
+                string desc = llList2String(tmp, 1) + "\n\n" + llList2String(tmp, 2);
+                if(llList2String(tmp, 3) != "0")
+                {
+                    desc = desc + "\n\nSells for: " + llList2String(tmp, 3) + " Crowns a piece.";
+                }
+                desc = desc + "\n\nCan carry a maximum of " + llList2String(tmp, 4) + ".";
+                echoCh = Key2AppChan(llGetOwner(), 19);
+                echoL = llListen(echoCh, "", llGetOwner(), "");
+                llSetTimerEvent(30);
+                llDialog(llGetOwner(), desc, options, ehcoCh);
+            }
+        }
+    }    
     on_rez(integer start)
     {
         if(!llGetAttached())
@@ -319,7 +355,10 @@ default
                         list tmp = llParseString2List(llList2String(items, i), [":"], []);
                         if(!banking)
                         {
-                            llOwnerSay(llList2String(tmp, 1) + "x " + out);
+                            //llOwnerSay(llList2String(tmp, 1) + "x " + out);
+                            llListenRemove(echoL);
+                            selectedItem = (integer)llList2String(tmp, 1);
+                            itemData = ping("show&usr=" + (string)llGetOwner() + "&func=getDetails&itemId="+(string)selectedItem);
                         }
                         else if(banking == 1)
                         {
@@ -443,6 +482,7 @@ default
         banking = FALSE;
         banker = NULL_KEY;
         llListenRemove(dHandler);
+        llListenRemove(echoL);
     }
     
     attach(key id)
