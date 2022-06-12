@@ -14,6 +14,22 @@
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->getInventory();
         }
+        function getName()
+        {
+            $rpt = connectToRptool();
+            $stmt = "SELECT titles FROM rp_tool_character_repository WHERE character_id = ?";
+            try
+            {
+                $do = $rpt->prepare($stmt);
+                $do->execute([$this->charId]);
+                $do = $do->fetch(PDO::FETCH_ASSOC);
+            }
+            catch(PDOException $e)
+            {
+                exit("err:".$e->getMessage());
+            }
+            return explode("=>", $do['titles'])[0];
+        }
         function getInventory()
         {
             $stmt = "SELECT item_1,item_2,item_3,item_4,item_5,item_6,item_7,item_8,item_9,money FROM character_inventory WHERE char_id = ?";
@@ -81,6 +97,7 @@
             $out[] = $item['sell_price'];
             $out[] = $item['max_stack'];
             $out[] = $item['usable'];
+            $out[] = $this->getName();
             return implode(":::", $out);
         }
     }

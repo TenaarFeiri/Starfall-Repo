@@ -2,7 +2,7 @@
     header('Content-type: text/plain');
 
 
-    define('_debug', true);
+    define('_debug', false);
     if(_debug) { // Error handling only if we're debugging or developing.
         // ----------------------------------------------------------------------------------------------------
         // - Display Errors
@@ -166,7 +166,7 @@
     {
         if($arr['func'] == "getDetails")
         {
-            echo $mngr->showData("9");
+            echo $mngr->showData($arr['itemId']);
         }
     }
 ?>

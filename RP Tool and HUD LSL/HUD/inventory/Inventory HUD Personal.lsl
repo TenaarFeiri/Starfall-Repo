@@ -292,6 +292,7 @@ default
         if(id == itemData)
         {
             list tmp = llParseString2List(body, [":::"], []);
+            charName = llList2String(tmp, -1);
             string cmd = llList2String(tmp, 0);
             if(cmd == "echo")
             {
@@ -310,7 +311,7 @@ default
                 echoCh = Key2AppChan(llGetOwner(), 19);
                 echoL = llListen(echoCh, "", llGetOwner(), "");
                 llSetTimerEvent(30);
-                llDialog(llGetOwner(), desc, options, ehcoCh);
+                llDialog(llGetOwner(), desc, options, echoCh);
             }
         }
     }    
@@ -360,7 +361,8 @@ default
                         {
                             //llOwnerSay(llList2String(tmp, 1) + "x " + out);
                             llListenRemove(echoL);
-                            selectedItem = (integer)llList2String(tmp, 1);
+                            string isl = llList2String(items, i);
+                            selectedItem = (integer)llList2String(llParseString2List(isl, [":"], []), 0);
                             itemData = ping("show&usr=" + (string)llGetOwner() + "&func=getDetails&itemId="+(string)selectedItem);
                         }
                         else if(banking == 1)
