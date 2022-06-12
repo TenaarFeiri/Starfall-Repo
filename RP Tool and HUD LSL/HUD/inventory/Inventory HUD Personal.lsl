@@ -9,6 +9,8 @@ key itemData;
 key itemUsage;
 key itemShow;
 integer selectedItem;
+string itemName;
+string charName;
 key ping(string data)
 {
     return llHTTPRequest(serverURL, [HTTP_METHOD, "POST", HTTP_MIMETYPE, "application/x-www-form-urlencoded", HTTP_BODY_MAXLENGTH, 16384, HTTP_VERIFY_CERT, FALSE], data);
@@ -298,7 +300,8 @@ default
                 {
                     options = ["Use"] + options;
                 }
-                string desc = llList2String(tmp, 1) + "\n\n" + llList2String(tmp, 2);
+                itemName = llList2String(tmp, 1);
+                string desc = itemName + "\n\n" + llList2String(tmp, 2);
                 if(llList2String(tmp, 3) != "0")
                 {
                     desc = desc + "\n\nSells for: " + llList2String(tmp, 3) + " Crowns a piece.";
@@ -466,6 +469,22 @@ default
                     llDialog(llGetOwner(), "You must specify a number.", ["Close"], squawk);
                 }
                 llSetTimerEvent(0.2);
+            }
+        }
+        else if(c == echoCh)
+        {
+            if(m == "Use")
+            {
+                // Use code.
+            }
+            else if(m == "Show")
+            {
+                string tmp = llGetObjectName();
+                llSetObjectName("(ITEMS) " + charName);
+                llSay(0, "/me carries item '" + itemName + "' (ID: "+(string)selectedItem+") in their inventory.");
+                llSetObjectName(tmp);
+                llListenRemove(echoL);
+                llSetTimerEvent(0);
             }
         }
     }
