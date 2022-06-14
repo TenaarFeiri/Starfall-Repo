@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 31, 2022 at 02:30 PM
--- Server version: 5.7.38-0ubuntu0.18.04.1
+-- Generation Time: 14. Jun, 2022 12:29 PM
+-- Tjener-versjon: 5.7.38-0ubuntu0.18.04.1
 -- PHP Version: 7.2.24-0ubuntu0.18.04.11
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -27,15 +27,17 @@ USE `inventory_system`;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `blurbs`
+-- Tabellstruktur for tabell `blurbs`
 --
 
 DROP TABLE IF EXISTS `blurbs`;
 CREATE TABLE `blurbs` (
   `id` int(11) NOT NULL,
   `npc_id` int(11) DEFAULT '0' COMMENT 'For organizational purposes only!',
+  `comments` text NOT NULL COMMENT 'To help with organization.',
   `quest_id` int(11) NOT NULL DEFAULT '0',
-  `blurb_text` varchar(512) NOT NULL,
+  `emote` varchar(512) NOT NULL,
+  `blurb_text` varchar(1024) NOT NULL COMMENT 'Max 1024 characters.\r\n1000 characters is safe.',
   `choices` varchar(255) NOT NULL DEFAULT 'OK',
   `choice_data` varchar(255) NOT NULL DEFAULT 'exit'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -43,7 +45,7 @@ CREATE TABLE `blurbs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `character_bank`
+-- Tabellstruktur for tabell `character_bank`
 --
 
 DROP TABLE IF EXISTS `character_bank`;
@@ -52,38 +54,10 @@ CREATE TABLE `character_bank` (
   `stored_money` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Triggers `character_bank`
---
-DROP TRIGGER IF EXISTS `update money bank`;
-DELIMITER $$
-CREATE TRIGGER `update money bank` AFTER UPDATE ON `character_bank` FOR EACH ROW UPDATE settings
-JOIN (SELECT SUM(money) AS sum_money FROM character_inventory) t2
-JOIN (SELECT SUM(stored_money) AS sum_stored FROM character_bank) t3
-SET money = (t2.sum_money + t3.sum_stored)
-$$
-DELIMITER ;
-DROP TRIGGER IF EXISTS `update money bank delete`;
-DELIMITER $$
-CREATE TRIGGER `update money bank delete` AFTER DELETE ON `character_bank` FOR EACH ROW UPDATE settings
-JOIN (SELECT SUM(money) AS sum_money FROM character_inventory) t2
-JOIN (SELECT SUM(stored_money) AS sum_stored FROM character_bank) t3
-SET money = (t2.sum_money + t3.sum_stored)
-$$
-DELIMITER ;
-DROP TRIGGER IF EXISTS `update money bank insert`;
-DELIMITER $$
-CREATE TRIGGER `update money bank insert` AFTER INSERT ON `character_bank` FOR EACH ROW UPDATE settings
-JOIN (SELECT SUM(money) AS sum_money FROM character_inventory) t2
-JOIN (SELECT SUM(stored_money) AS sum_stored FROM character_bank) t3
-SET money = (t2.sum_money + t3.sum_stored)
-$$
-DELIMITER ;
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `character_inventory`
+-- Tabellstruktur for tabell `character_inventory`
 --
 
 DROP TABLE IF EXISTS `character_inventory`;
@@ -104,38 +78,10 @@ CREATE TABLE `character_inventory` (
   `deleted` int(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Triggers `character_inventory`
---
-DROP TRIGGER IF EXISTS `Update money on delete`;
-DELIMITER $$
-CREATE TRIGGER `Update money on delete` AFTER DELETE ON `character_inventory` FOR EACH ROW UPDATE settings
-JOIN (SELECT SUM(money) AS sum_money FROM character_inventory) t2
-JOIN (SELECT SUM(stored_money) AS sum_stored FROM character_bank) t3
-SET money = (t2.sum_money + t3.sum_stored)
-$$
-DELIMITER ;
-DROP TRIGGER IF EXISTS `update money`;
-DELIMITER $$
-CREATE TRIGGER `update money` AFTER UPDATE ON `character_inventory` FOR EACH ROW UPDATE settings
-JOIN (SELECT SUM(money) AS sum_money FROM character_inventory) t2
-JOIN (SELECT SUM(stored_money) AS sum_stored FROM character_bank) t3
-SET money = (t2.sum_money + t3.sum_stored)
-$$
-DELIMITER ;
-DROP TRIGGER IF EXISTS `update money on insert`;
-DELIMITER $$
-CREATE TRIGGER `update money on insert` AFTER INSERT ON `character_inventory` FOR EACH ROW UPDATE settings
-JOIN (SELECT SUM(money) AS sum_money FROM character_inventory) t2
-JOIN (SELECT SUM(stored_money) AS sum_stored FROM character_bank) t3
-SET money = (t2.sum_money + t3.sum_stored)
-$$
-DELIMITER ;
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `character_storage`
+-- Tabellstruktur for tabell `character_storage`
 --
 
 DROP TABLE IF EXISTS `character_storage`;
@@ -151,7 +97,7 @@ CREATE TABLE `character_storage` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `crafters`
+-- Tabellstruktur for tabell `crafters`
 --
 
 DROP TABLE IF EXISTS `crafters`;
@@ -167,7 +113,7 @@ CREATE TABLE `crafters` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `crafting_jobs`
+-- Tabellstruktur for tabell `crafting_jobs`
 --
 
 DROP TABLE IF EXISTS `crafting_jobs`;
@@ -181,7 +127,7 @@ CREATE TABLE `crafting_jobs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `crafting_recipes`
+-- Tabellstruktur for tabell `crafting_recipes`
 --
 
 DROP TABLE IF EXISTS `crafting_recipes`;
@@ -206,14 +152,14 @@ CREATE TABLE `crafting_recipes` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `faction`
+-- Tabellstruktur for tabell `faction`
 --
 
 DROP TABLE IF EXISTS `faction`;
 CREATE TABLE `faction` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `description` varchar(16000) NOT NULL DEFAULT '''n/a''',
+  `description` varchar(16000) NOT NULL DEFAULT 'n/a',
   `pronoun` varchar(255) DEFAULT NULL,
   `starter_rank` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -221,7 +167,7 @@ CREATE TABLE `faction` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `faction_members`
+-- Tabellstruktur for tabell `faction_members`
 --
 
 DROP TABLE IF EXISTS `faction_members`;
@@ -236,7 +182,7 @@ CREATE TABLE `faction_members` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `faction_ranks`
+-- Tabellstruktur for tabell `faction_ranks`
 --
 
 DROP TABLE IF EXISTS `faction_ranks`;
@@ -251,7 +197,7 @@ CREATE TABLE `faction_ranks` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `items`
+-- Tabellstruktur for tabell `items`
 --
 
 DROP TABLE IF EXISTS `items`;
@@ -266,8 +212,8 @@ CREATE TABLE `items` (
   `max_stack` int(11) NOT NULL DEFAULT '0',
   `texture_name` varchar(255) NOT NULL DEFAULT 'blank',
   `texture_color` varchar(255) NOT NULL DEFAULT '<255,255,255>',
-  `craftable` int(11) NOT NULL DEFAULT '0' COMMENT '1 if craftable',
-  `crafting_mats` varchar(255) NOT NULL COMMENT 'material_id:amount,material_id:amount, etc.',
+  `usable` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 if craftable',
+  `use_effect` varchar(255) NOT NULL DEFAULT '0' COMMENT 'material_id:amount,material_id:amount, etc.',
   `max_gather` int(11) NOT NULL DEFAULT '5',
   `gather_success_chance` float NOT NULL DEFAULT '0.2'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Item list for Lismore';
@@ -275,7 +221,7 @@ CREATE TABLE `items` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `logs`
+-- Tabellstruktur for tabell `logs`
 --
 
 DROP TABLE IF EXISTS `logs`;
@@ -293,22 +239,23 @@ CREATE TABLE `logs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `npc_table`
+-- Tabellstruktur for tabell `npc_table`
 --
 
 DROP TABLE IF EXISTS `npc_table`;
 CREATE TABLE `npc_table` (
   `npc_id` int(11) NOT NULL,
   `npc_name` varchar(255) NOT NULL,
-  `opening_blurb` int(11) NOT NULL,
+  `opening_blurb` int(11) NOT NULL DEFAULT '0',
   `vendor` int(11) NOT NULL DEFAULT '0',
-  `vendor_table_row` int(11) NOT NULL DEFAULT '1'
+  `vendor_table_row` int(11) NOT NULL DEFAULT '1',
+  `dialogue_spreadsheet` varchar(16000) NOT NULL COMMENT 'URLs to NPC dialogue sheets'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `quests`
+-- Tabellstruktur for tabell `quests`
 --
 
 DROP TABLE IF EXISTS `quests`;
@@ -324,7 +271,7 @@ CREATE TABLE `quests` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `settings`
+-- Tabellstruktur for tabell `settings`
 --
 
 DROP TABLE IF EXISTS `settings`;
@@ -339,7 +286,7 @@ CREATE TABLE `settings` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `vendor_tables`
+-- Tabellstruktur for tabell `vendor_tables`
 --
 
 DROP TABLE IF EXISTS `vendor_tables`;
@@ -541,7 +488,7 @@ USE `phpmyadmin`;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__bookmark`
+-- Tabellstruktur for tabell `pma__bookmark`
 --
 
 DROP TABLE IF EXISTS `pma__bookmark`;
@@ -556,7 +503,7 @@ CREATE TABLE `pma__bookmark` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__central_columns`
+-- Tabellstruktur for tabell `pma__central_columns`
 --
 
 DROP TABLE IF EXISTS `pma__central_columns`;
@@ -574,7 +521,7 @@ CREATE TABLE `pma__central_columns` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__column_info`
+-- Tabellstruktur for tabell `pma__column_info`
 --
 
 DROP TABLE IF EXISTS `pma__column_info`;
@@ -594,7 +541,7 @@ CREATE TABLE `pma__column_info` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__designer_settings`
+-- Tabellstruktur for tabell `pma__designer_settings`
 --
 
 DROP TABLE IF EXISTS `pma__designer_settings`;
@@ -606,7 +553,7 @@ CREATE TABLE `pma__designer_settings` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__export_templates`
+-- Tabellstruktur for tabell `pma__export_templates`
 --
 
 DROP TABLE IF EXISTS `pma__export_templates`;
@@ -621,7 +568,7 @@ CREATE TABLE `pma__export_templates` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__favorite`
+-- Tabellstruktur for tabell `pma__favorite`
 --
 
 DROP TABLE IF EXISTS `pma__favorite`;
@@ -633,7 +580,7 @@ CREATE TABLE `pma__favorite` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__history`
+-- Tabellstruktur for tabell `pma__history`
 --
 
 DROP TABLE IF EXISTS `pma__history`;
@@ -649,7 +596,7 @@ CREATE TABLE `pma__history` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__navigationhiding`
+-- Tabellstruktur for tabell `pma__navigationhiding`
 --
 
 DROP TABLE IF EXISTS `pma__navigationhiding`;
@@ -664,7 +611,7 @@ CREATE TABLE `pma__navigationhiding` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__pdf_pages`
+-- Tabellstruktur for tabell `pma__pdf_pages`
 --
 
 DROP TABLE IF EXISTS `pma__pdf_pages`;
@@ -677,7 +624,7 @@ CREATE TABLE `pma__pdf_pages` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__recent`
+-- Tabellstruktur for tabell `pma__recent`
 --
 
 DROP TABLE IF EXISTS `pma__recent`;
@@ -689,7 +636,7 @@ CREATE TABLE `pma__recent` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__relation`
+-- Tabellstruktur for tabell `pma__relation`
 --
 
 DROP TABLE IF EXISTS `pma__relation`;
@@ -705,7 +652,7 @@ CREATE TABLE `pma__relation` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__savedsearches`
+-- Tabellstruktur for tabell `pma__savedsearches`
 --
 
 DROP TABLE IF EXISTS `pma__savedsearches`;
@@ -720,7 +667,7 @@ CREATE TABLE `pma__savedsearches` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__table_coords`
+-- Tabellstruktur for tabell `pma__table_coords`
 --
 
 DROP TABLE IF EXISTS `pma__table_coords`;
@@ -735,7 +682,7 @@ CREATE TABLE `pma__table_coords` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__table_info`
+-- Tabellstruktur for tabell `pma__table_info`
 --
 
 DROP TABLE IF EXISTS `pma__table_info`;
@@ -748,7 +695,7 @@ CREATE TABLE `pma__table_info` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__table_uiprefs`
+-- Tabellstruktur for tabell `pma__table_uiprefs`
 --
 
 DROP TABLE IF EXISTS `pma__table_uiprefs`;
@@ -763,7 +710,7 @@ CREATE TABLE `pma__table_uiprefs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__tracking`
+-- Tabellstruktur for tabell `pma__tracking`
 --
 
 DROP TABLE IF EXISTS `pma__tracking`;
@@ -783,7 +730,7 @@ CREATE TABLE `pma__tracking` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__userconfig`
+-- Tabellstruktur for tabell `pma__userconfig`
 --
 
 DROP TABLE IF EXISTS `pma__userconfig`;
@@ -796,7 +743,7 @@ CREATE TABLE `pma__userconfig` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__usergroups`
+-- Tabellstruktur for tabell `pma__usergroups`
 --
 
 DROP TABLE IF EXISTS `pma__usergroups`;
@@ -809,7 +756,7 @@ CREATE TABLE `pma__usergroups` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `pma__users`
+-- Tabellstruktur for tabell `pma__users`
 --
 
 DROP TABLE IF EXISTS `pma__users`;
@@ -991,7 +938,7 @@ USE `rp_tool`;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `rp_tool_character_repository`
+-- Tabellstruktur for tabell `rp_tool_character_repository`
 --
 
 DROP TABLE IF EXISTS `rp_tool_character_repository`;
@@ -1011,7 +958,7 @@ CREATE TABLE `rp_tool_character_repository` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Tabellstruktur for tabell `users`
 --
 
 DROP TABLE IF EXISTS `users`;
