@@ -24,6 +24,7 @@ key npcVendorGeneral;
 key npcVendorViewItem;
 key npcVendorItemData;
 key npcVendorMakeTransaction;
+key inviteTarget;
 
 integer faction; // NOT FALSE when in a faction.
 integer leaving; // Are we leaving?
@@ -34,6 +35,14 @@ integer fMenuPage = 1;
 integer npcChannel;
 integer npcListener;
 integer npcStorePage = 1;
+integer inviteChannel;
+integer inviteListener;
+integer sensing;
+
+float timeout = 30;
+
+list sensed;
+list sensedNames;
 
 key ping(string data) // Ping the server
 {
@@ -97,8 +106,8 @@ list paginate( integer vIdxPag, list gLstMnu ){
         integer vIdxBgn = (vIdxPag = (vIntTtl + vIdxPag) % vIntTtl) * 10;              //-- first menu index
         string  vStrPag = llGetSubString( "                     ", 21 - vIdxPag, 21 ); //-- encode page number as spaces
          //-- get ten (or less for the last page) entries from the list and insert back/fwd buttons
-        vLstRtn = llListInsertList( llList2List( gLstMnu, vIdxBgn, vIdxBgn + 9 ), (list)(" «" + vStrPag), 0xFFFFFFFF ) +
-                  (list)(" »" + vStrPag);
+        vLstRtn = llListInsertList( llList2List( gLstMnu, vIdxBgn, vIdxBgn + 9 ), (list)("«" + vStrPag), 0xFFFFFFFF ) +
+                  (list)("»" + vStrPag);
     }else{ //-- we only have 1 page
         vLstRtn = gLstMnu; //-- just use the list as is
     }
@@ -157,6 +166,10 @@ default
     {
         llSetTimerEvent(0);
         leaving = FALSE;
+        llListenRemove(inviteListener);
+        sensed = [];
+        sensedNames = [];
+        sensing = FALSE;
     }
 
     listen(integer c, string n, key id, string m)
@@ -179,6 +192,40 @@ default
                 leaving = FALSE;
                 llListenRemove(fMenuListener);
             }
+            else if(sensing)
+            {
+                if(m == "«")
+                {
+                    llSetTimerEvent(timeout);
+                    if((sensing - 1) != 0)
+                    {
+                        --sensing;
+                    }
+                    llDialog(llGetOwner(), "Invite member to " + factionName, paginate(sensing, sensedNames), fMenuChannel);
+                }
+                else if(m == "»")
+                {
+                    llSetTimerEvent(timeout);
+                    ++sensing;
+                    llDialog(llGetOwner(), "Invite member to " + factionName, paginate(sensing, sensedNames), fMenuChannel);
+                }
+                else
+                {
+                    integer pos = llListFindList(sensedNames, [(string)m]);
+                    if(pos != -1)
+                    {
+                        inviteTarget = (key)llList2String(sensed, pos);
+                        inviteChannel = Key2AppChan(inviteTarget, 17);
+                        inviteListener = llListen(inviteChannel, "", inviteTarget, "");
+                        llDialog(inviteTarget, "You have been invited to join " + factionName + "!", ["Accept", "Decline"], inviteChannel);
+                        llDialog(llGetOwner(), "Invited " + m + " to the faction.", ["OK"], fMenuChannel);
+                    }
+                    else
+                    {
+                        llOwnerSay("Couldn't invite " + m + " to the faction.");
+                    }
+                }
+            }
             else if(m == "Stats")
             {
                 llOwnerSay("Faction status here, when applicable.");
@@ -198,6 +245,12 @@ default
                 llDialog(llGetOwner(), "Really leave faction? You have 10 seconds before timeout.", ["Yes", "No"], fMenuChannel);
                 llSetTimerEvent(10);
             }
+            else if(m == "Invite Member")
+            {
+                llSetTimerEvent(timeout);
+                sensing = 1;
+                llSensor("", "", AGENT, 20, PI);
+            }
         }
         else if(c == fMenuChannel && mode = 2)
         {
@@ -207,6 +260,37 @@ default
         {
 
         }
+        else if(c == inviteChannel)
+        {
+            if(m == "Accept")
+            {
+                llSetTimerEvent(timeout);
+                llOwnerSay(llKey2Name(inviteTarget) + " has accepted your faction invitation.");
+                fMembership = ping("membership&func=invite&faction=" + (string)faction + "&target=" + (string)inviteTarget);
+            }
+            else
+            {
+                llOwnerSay(llKey2Name(inviteTarget) + " has declined your faction invitation.");
+                llSetTimerEvent(0.2);
+            }
+        }
+    }
+
+    sensor(integer num)
+    {
+        integer i;
+        string name;
+        sensed = [];
+        sensedNames = [];
+        do
+        {
+            name = llKey2Name(llDetectedKey(i));
+            name = llStringTrim(llGetSubString(name, 0, 12), STRING_TRIM);
+            sensed += [(string)llDetectedKey(i)];
+            sensedNames += [(string)name];
+            ++i;
+        }
+        while(i<=num);
     }
 
     http_response(key request_id, integer status, list metadata, string body)
@@ -245,7 +329,13 @@ default
         }
         else if(request_id == fMembership)
         {
-
+            llOwnerSay(body);
+            // Key2AppChan(key, 1338);
+            // factionupdate::targetkey
+            if(~llSubStringIndex(body, "You have added"))
+            {
+                llRegionSayTo(inviteTarget, 0, "factionupdate::" + (string)inviteTarget);
+            }
         }
         else if(request_id == fMissions)
         {
