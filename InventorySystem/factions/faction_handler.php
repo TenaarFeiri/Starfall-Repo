@@ -85,7 +85,7 @@
     if((!isset($arr['usr']) or empty($arr['usr'])))
     {
         // If vital information is not included, just die. We need a char id, and we need a UUID to confirm that the character belongs to the client.
-        die("err:No usr provided provided.");
+        die("err:No usr provided.");
     }
     else if(!isset($arr['func']) or empty($arr['func']))
     {

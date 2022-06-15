@@ -266,7 +266,7 @@ default
             {
                 llSetTimerEvent(timeout);
                 llOwnerSay(llKey2Name(inviteTarget) + " has accepted your faction invitation.");
-                fMembership = ping("membership&func=invite&faction=" + (string)faction + "&target=" + (string)inviteTarget);
+                fMembership = ping("membership&func=invite&faction=" + (string)faction + "&target=" + (string)inviteTarget + "&usr=" + (string)llGetOwner());
             }
             else
             {
@@ -284,13 +284,17 @@ default
         sensedNames = [];
         do
         {
-            name = llKey2Name(llDetectedKey(i));
-            name = llStringTrim(llGetSubString(name, 0, 12), STRING_TRIM);
-            sensed += [(string)llDetectedKey(i)];
-            sensedNames += [(string)name];
+            if(llDetectedKey(i) != llGetOwner())
+            {
+                name = llKey2Name(llDetectedKey(i));
+                name = llStringTrim(llGetSubString(name, 0, 12), STRING_TRIM);
+                sensed += [(string)llDetectedKey(i)];
+                sensedNames += [(string)name];
+            }
             ++i;
         }
-        while(i<=num);
+        while(i<=(num-1));
+        llDialog(llGetOwner(), "Invite member to " + factionName, paginate(sensing, sensedNames), fMenuChannel);
     }
 
     http_response(key request_id, integer status, list metadata, string body)
@@ -334,7 +338,7 @@ default
             // factionupdate::targetkey
             if(~llSubStringIndex(body, "You have added"))
             {
-                llRegionSayTo(inviteTarget, 0, "factionupdate::" + (string)inviteTarget);
+                llRegionSayTo(inviteTarget, Key2AppChan(inviteTarget, 1338), "factionupdate::" + (string)inviteTarget);
             }
         }
         else if(request_id == fMissions)
