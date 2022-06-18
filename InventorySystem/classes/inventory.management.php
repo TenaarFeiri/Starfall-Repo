@@ -151,10 +151,14 @@
             }
             else if($this->corruption["fog_corruption"] >= 100)
             {
-                $fog = "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn. You are become the Fog. You serve the Fog. Your body is no longer yours, but if you had any sense of you left inside, you'd probably wouldn't recognise it anyway. You are fully and irreversibly mutated, and you feel you have but a few purposes left in whatever you would call this life: HUNT. CONVERT. SACRIFICE. You are beyond redemption.";
+                $fog = "You are become the Fog. You serve the Fog. Your body is no longer yours, but if you had any sense of yourself remaining, you'd probably not recognise it anyway. You are fully and irreversibly mutated, and you feel you have but a few purposes left in whatever you would call this life: HUNT. CONVERT. SACRIFICE. You are beyond redemption.";
             }
             $demon;
             $mana;
+            if($this->corruption["mana_corruption"] < 10)
+            {
+                $mana = "";
+            }
             $arr[] = $fog;
             $arr[] = $demon;
             $arr[] = $mana;
