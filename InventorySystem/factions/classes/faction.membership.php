@@ -161,6 +161,62 @@ class membership extends status
         return $charName . " has been removed from " . $targetCharacterData['factionData']['name'];
     }
 
+    function getRanks($page, $faction, $target, $promoting)
+    {
+        if($this->character['charFaction']['char_faction'] != $faction or !parent::getRankPermissions($this->character, ["factionPromote", "factionDemote"]))
+        {
+            exit("err:You don't have the correct permissions to perform this function.");
+        }
+        $officer = parent::getRankPermissions($this->character, ["officer"]); // Make our lives easy, reduce calls.
+        $leader = parent::getRankPermissions($this->character, ["leader"]); // Always true is leader.
+        if($page < 1)
+        {
+            $page = 1;
+        }
+        $firstNum;
+        $lastNum = 9;
+        if($page === 1) {
+            $firstNum = 0;
+        } else {
+            $firstNum = 9 * $page - 9;
+        }
+        parent::connect("inventory");
+        $promoting ? $stmt = "SELECT id,name,rank_permissions FROM faction_ranks WHERE rank_faction = ? AND rank_sort > ? ORDER BY rank_sort DESC LIMIT $firstNum, $lastNum" 
+        : 
+        $stmt = "SELECT id,name,rank_permissions FROM faction_ranks WHERE rank_faction = ? AND rank_sort < ? ORDER BY rank_sort DESC LIMIT $firstNum, $lastNum";
+        $target = parent::getUserInfo($target);
+        $targetCharacterData = parent::getCharacterData($target['lastchar']);
+        $charName = explode("=>", $targetCharacterData['charData']['titles'])[0];
+        if(empty($targetCharacterData['charFaction']))
+        {
+            exit($charName . " is not in a faction.");
+        }
+        else if($targetCharacterData['charFaction']['char_faction'] != $faction)
+        {
+            exit($charName . " is not a member of your faction.");
+        }
+        // factionData factionRankData
+        try
+        {
+            $do = $this->invPdo->prepare($stmt);
+            $do->execute([$faction, $targetCharacterData['factionData']['factionRankData']]);
+            $do = $do->fetchAll(PDO::FETCH_ASSOC);
+            $result = array();
+            foreach($do as $arr)
+            {
+                if(!parent::getRankPermissions($targetCharacterData, ["officer"]) and parent::getRankPermissions($this->character, ["officer"]) or parent::getRankPermissions($this->character, ["leader"]))
+                {
+                    $result[] = $arr['id'] . ":" . $arr['rank_name'];
+                }
+            }
+            return implode(":::", $result);
+        }
+        catch(PDOException $e)
+        {
+            exit($e->getMessage());
+        }
+    }
+
     function leaveFaction() // Leave your current faction.
     {
         if(!$this->character['charFaction'])

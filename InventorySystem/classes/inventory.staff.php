@@ -160,7 +160,8 @@
                     uuid like (:search) or
                     char_id like (:search) or
                     char_name like (:search) or
-                    module like (:search)
+                    module like (:search) or
+                    log like ('%' + :search)
                 )
                 ORDER BY entry DESC LIMIT $firstNum, $lastNum
             ";
@@ -257,7 +258,7 @@
                         $out[] = $arr['character_id'] . "&&&" . explode("=>", $arr['titles'])[0];
                     }
                     $usrDetails = $this->getUserDetails($usrId);
-                    $this->writeLog("Retrieved character list for user " . $usrDetails['username'] . "(ID: " . $usrId . "), page " . $page);
+                    //$this->writeLog("Retrieved character list for user " . $usrDetails['username'] . "(ID: " . $usrId . "), page " . $page);
                     return "page::$page::".implode("&%&", $out); // Then return the output.
                 }
                 else
@@ -512,10 +513,11 @@
             {
                 if(($var['money'] - $amount) < 0) // Kill if even one person cannot lose that much money.
                 {
-                    exit("err:" . $charData[$id]['titles'])[0] . "doesn't have enough money. They have " . $var['money'] . " & you tried to remove $amount.");
+                    exit("err:" . $charData[$id]['titles'][0] . "doesn't have enough money. They have " . $var['money'] . " & you tried to remove $amount.");
                 }
-                
+                $money[$id] = ($var['money'] - $amount);
             }
+            
         }
         // ADD ITEM TO MULTIPLE
         function addItemToMultiple($t, $itemId, $amount)

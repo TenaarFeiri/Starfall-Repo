@@ -158,15 +158,55 @@
     // If we survive both of these checks, we are gucci.
     // Time for the meat!
     $mngr = new management($charId);
-    if($arr['func'] == "test")
-    {
-        echo $mngr->showData("9");
-    }
     if(isset($arr['show']) and isset($arr['itemId']) and !empty($arr['itemId']))
     {
         if($arr['func'] == "getDetails")
         {
             echo $mngr->showData($arr['itemId']);
+        }
+    }
+    else if(isset($arr['use']) and !empty($arr['itemId']))
+    {
+        echo $mngr->useItem($arr['itemId']);
+    }
+    else if(isset($arr['corruption']))
+    {
+        if(isset($arr['func']) and !empty($arr['func']))
+        {
+            if($arr['func'] == "getCorruption")
+            {
+                echo $mngr->getCorruption();
+            }
+            else if($arr['func'] == "raiseCorruption" and isset($arr['type']) and isset($arr['value']))
+            {
+                $types = explode(",", $arr['type']);
+                $vals = explode(",", $arr['value']);
+                $i = 0;
+                foreach($types as $var)
+                {
+                    $mngr->raiseCorruption($var, $vals[$i]);
+                    ++$i;
+                }
+                $mngr->updateCorruption();
+                echo $mngr->getCorruption();
+            }
+            else if($arr['func'] == "lowerCorruption" and isset($arr['type']) and isset($arr['value']))
+            {
+                $types = explode(",", $arr['type']);
+                $vals = explode(",", $arr['value']);
+                $i = 0;
+                foreach($types as $var)
+                {
+                    $mngr->lowerCorruption($var, $vals[$i]);
+                    ++$i;
+                }
+                $mngr->updateCorruption();
+                echo $mngr->getCorruption();
+            }
+            else if($arr['func'] == "checkCondition")
+            {
+                
+            }
         }
     }
 ?>

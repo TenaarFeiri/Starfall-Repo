@@ -163,6 +163,11 @@
             $factionMemberAction = new membership($arr['usr']);
             echo $factionMemberAction->getMemberList($arr['faction'], $arr['page']);
         }
+        else if($arr['func'] == "getRanks" and !empty($arr['page']) and !empty($arr['faction']))
+        {
+            //getRanks($page, $faction, $target, $promoting)
+            echo $factionMemberAction->getRanks($arr['page'], $arr['faction'], $arr['target'], $arr['promoting']);
+        }
         else if($arr['func'] == "kickCharacter" and !empty($arr['target']) and !empty($arr['faction']))
         {
             $factionMemberAction = new membership($arr['usr']);

@@ -13,7 +13,7 @@
         private $characterDetails;
         private $characterJobDetails;
         private $gItemDetails;
-        private $levelExp = array("10", "20", "48", "70");
+        private $levelExp = array("10", "60", "130", "250");
         function __construct($chrArr, $jobArr)
         {
             $this->characterDetails = $chrArr;
