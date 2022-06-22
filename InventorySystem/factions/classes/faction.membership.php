@@ -269,6 +269,10 @@ class membership extends status
             $do = $this->invPdo->prepare($stmt);
             $do->execute();
             $results = $do->fetchAll(PDO::FETCH_ASSOC);
+            if(!$results)
+            {
+                exit("No members found on page $page. Go back a page.");
+            }
             if(_debug)
             {
                 print_r($ranks);

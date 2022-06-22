@@ -16,7 +16,8 @@
         "Felix Stourmead",
         "Ani Aunerfal",
         "Jaecar Ulrik",
-        "Xaedrian Resident"
+        "Xaedrian Resident",
+        "DruonGrawal Resident"
     );
     // Auto load classes as I need them.
     spl_autoload_register(function ($name) {

@@ -10,6 +10,7 @@ integer key2AppChan(key ID, integer App) { // Generate chat channel.
 integer killChan;
 integer func_getHeight(key who)
 {
+    return TRUE; // Lazy hack to enable tool on the full region.
     vector pos = (vector)llList2String(llGetObjectDetails(who, [OBJECT_POS]), 0);
     float z = (integer)pos.z;
     if((z-min)*(max-z) >= 0)
