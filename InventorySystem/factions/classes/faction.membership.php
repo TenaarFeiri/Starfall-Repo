@@ -161,7 +161,7 @@ class membership extends status
         return $charName . " has been removed from " . $targetCharacterData['factionData']['name'];
     }
 
-    function getRanks($page, $faction, $target, $promoting)
+    function getRanks($page, $faction)
     {
         if($this->character['charFaction']['char_faction'] != $faction or !parent::getRankPermissions($this->character, ["factionPromote", "factionDemote"]))
         {
@@ -181,30 +181,21 @@ class membership extends status
             $firstNum = 9 * $page - 9;
         }
         parent::connect("inventory");
-        $promoting ? $stmt = "SELECT id,name,rank_permissions FROM faction_ranks WHERE rank_faction = ? AND rank_sort > ? ORDER BY rank_sort DESC LIMIT $firstNum, $lastNum" 
-        : 
-        $stmt = "SELECT id,name,rank_permissions FROM faction_ranks WHERE rank_faction = ? AND rank_sort < ? ORDER BY rank_sort DESC LIMIT $firstNum, $lastNum";
-        $target = parent::getUserInfo($target);
-        $targetCharacterData = parent::getCharacterData($target['lastchar']);
-        $charName = explode("=>", $targetCharacterData['charData']['titles'])[0];
-        if(empty($targetCharacterData['charFaction']))
-        {
-            exit($charName . " is not in a faction.");
-        }
-        else if($targetCharacterData['charFaction']['char_faction'] != $faction)
-        {
-            exit($charName . " is not a member of your faction.");
-        }
+        $stmt = "SELECT id,rank_name,rank_permissions FROM faction_ranks WHERE rank_faction = ? ORDER BY rank_sort DESC LIMIT $firstNum, $lastNum";
         // factionData factionRankData
         try
         {
             $do = $this->invPdo->prepare($stmt);
-            $do->execute([$faction, $targetCharacterData['factionData']['factionRankData']]);
+            $do->execute([$faction]);
             $do = $do->fetchAll(PDO::FETCH_ASSOC);
+            if(!$do)
+            {
+                exit("err:No ranks on this page. You're probably too far ahead; go back a page.");
+            }
             $result = array();
             foreach($do as $arr)
             {
-                if(!parent::getRankPermissions($targetCharacterData, ["officer"]) and parent::getRankPermissions($this->character, ["officer"]) or parent::getRankPermissions($this->character, ["leader"]))
+                if(parent::getRankPermissions($this->character, ["officer"]) or parent::getRankPermissions($this->character, ["leader"]))
                 {
                     $result[] = $arr['id'] . ":" . $arr['rank_name'];
                 }
@@ -215,6 +206,70 @@ class membership extends status
         {
             exit($e->getMessage());
         }
+    }
+
+    function getSpecificRankPerms($rankId)
+    {
+        $stmt = "SELECT rank_permissions FROM faction_ranks WHERE id = ?";
+        parent::connect("inventory");
+        try
+        {
+            $do = $this->invPdo->prepare($stmt);
+            $do->execute([$rankId]);
+            return $do->fetch(PDO::FETCH_ASSOC);
+        }
+        catch(PDOException $e)
+        {
+            exit("err:Could not get rank permissions for faction $rankId.");
+        }
+    }
+
+    function localSearchRankPerms(array $arr, array $perm) 
+    {
+        $x = count($perm);
+        $i = 0;
+        $arr = explode(",", $arr['rank_permissions']);
+        foreach($perm as $v)
+        {
+            if($key = array_search($v, $arr) !== false)
+            {
+                $i++; // Add to count after finding correct permissions.
+            }
+        }
+        if($i < $x)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    function promoteToRank($rankId, $target, $faction)
+    {
+        if($this->character['charFaction']['char_faction'] != $faction or !parent::getRankPermissions($this->character, ["officer"]))
+        {
+            exit("err:You don't have the correct permissions to perform this function.");
+        }
+        $targetData = parent::getUserInfo($target);
+        $targetCharacterData = parent::getCharacterData($targetData['lastchar']);
+        $rankPerms = $this->getSpecificRankPerms($rankId);
+        if($targetCharacterData['charFaction']['char_faction'] != $this->character['charFaction']['char_faction'])
+        {
+            exit("err:Target is not in your faction.");
+        }
+        else if($targetCharacterData['charFaction']['char_faction_rank'] == $rankId)
+        {
+            exit("err:Member is already this rank.");
+        }
+        if(($this->localSearchRankPerms($rankPerms, ["officer"]) or $this->localSearchRankPerms($rankPerms, ["leader"])))
+        {
+            if($this->localSearchRankPerms(["rank_permissions" => $this->character['factionData']['factionRankData']['rank_permissions']], ["officer"]))
+            {
+                exit("err:Officers cannot promote people to officer ranks, or to leader ranks.");
+            }
+        }
+        if(_debug) { print_r($targetCharacterData); print_r($rankPerms); }
+        // And now FINALLY we can get to the meat.
+        // We're not going to bother with ensuring hierarchy. Anyone with officer permissions can change non-officers and non-leaders' ranks.
     }
 
     function leaveFaction() // Leave your current faction.
@@ -262,16 +317,16 @@ class membership extends status
         }
         parent::connect("inventory");
         $ranks = parent::getAllRankNames($faction);
-        $stmt = "SELECT char_id,char_name,char_faction,char_faction_rank FROM faction_members ORDER BY num ASC LIMIT $firstNum, $lastNum";
+        $stmt = "SELECT char_id,char_name,char_faction,char_faction_rank FROM faction_members WHERE char_faction = ? ORDER BY num ASC LIMIT $firstNum, $lastNum";
         $results = array();
         try
         {
             $do = $this->invPdo->prepare($stmt);
-            $do->execute();
+            $do->execute([$faction]);
             $results = $do->fetchAll(PDO::FETCH_ASSOC);
             if(!$results)
             {
-                exit("No members found on page $page. Go back a page.");
+                exit("err:No members found on page $page. Go back a page.");
             }
             if(_debug)
             {
