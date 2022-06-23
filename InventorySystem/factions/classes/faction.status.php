@@ -1,6 +1,5 @@
 <?php
 require_once('../classes/database.php');
-define("_debug", false);
 class status
 {
     public $rptPdo;
@@ -78,7 +77,7 @@ class status
     {
         $arr = explode(",", $targetArr['factionData']['factionRankData']['rank_permissions']);
         $key = array_search("leader", $arr);
-        if($key !== false)
+        if($key !== false and $targetArr === $this->character)
         {
             return true; // Always return true for leader.
         }

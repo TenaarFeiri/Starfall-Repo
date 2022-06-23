@@ -243,7 +243,7 @@ class membership extends status
         return true;
     }
 
-    function promoteToRank($rankId, $target, $faction)
+    function changeToRank($rankId, $target, $faction)
     {
         if($this->character['charFaction']['char_faction'] != $faction or !parent::getRankPermissions($this->character, ["officer"]))
         {

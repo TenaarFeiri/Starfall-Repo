@@ -1,7 +1,7 @@
 <?php
     header('Content-type: text/plain');
     $headers = apache_request_headers();
-    $debug = true;
+    define("_debug", false);
     $dev = false;
     if($debug ^ $dev) { // Error handling only if we're debugging or developing.
         // ----------------------------------------------------------------------------------------------------
@@ -171,7 +171,7 @@
         else if($arr['func'] == "promote" and !empty($arr['rankId']) and !empty($arr['faction']) and !empty($arr['target']))
         {
             $factionMemberAction = new membership($arr['usr']);
-            echo $factionMemberAction->promoteToRank($arr['rankId'], $arr['target'], $arr['faction']);
+            echo $factionMemberAction->changeToRank($arr['rankId'], $arr['target'], $arr['faction']);
         }
         else if($arr['func'] == "kickCharacter" and !empty($arr['target']) and !empty($arr['faction']))
         {
