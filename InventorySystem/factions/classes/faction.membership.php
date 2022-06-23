@@ -200,7 +200,7 @@ class membership extends status
                     $result[] = $arr['id'] . ":" . $arr['rank_name'];
                 }
             }
-            return implode(":::", $result);
+            return implode("::", $result);
         }
         catch(PDOException $e)
         {
