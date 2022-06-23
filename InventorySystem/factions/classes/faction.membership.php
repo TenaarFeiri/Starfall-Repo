@@ -270,6 +270,23 @@ class membership extends status
         if(_debug) { print_r($targetCharacterData); print_r($rankPerms); }
         // And now FINALLY we can get to the meat.
         // We're not going to bother with ensuring hierarchy. Anyone with officer permissions can change non-officers and non-leaders' ranks.
+        $stmt = "UPDATE faction_members SET char_faction_rank = ? WHERE char_id = ? AND char_faction = ?";
+        parent::connect("inventory");
+        $this->invPdo->beginTransaction();
+        $do = $this->invPdo->prepare($stmt);
+        try
+        {
+            $do->execute([$rankId, $targetData['lastchar'], $faction]);
+            $log = "Changed rank of " . explode("=>", $targetCharacterData['charData']['titles'])[0] . " (ID: " . $targetCharacterData['charData']['character_id'] . ") to rank ID " . $rankId . ".";
+            parent::writeLog($this->module, $log);
+            $this->invPdo->commit();
+            return "success::" . explode("=>", $targetCharacterData['charData']['titles'])[0];
+        }
+        catch(PDOException $e)
+        {
+            $this->invPdo->rollBack();
+            exit("err:Could not change ranks.");
+        }
     }
 
     function leaveFaction() // Leave your current faction.
