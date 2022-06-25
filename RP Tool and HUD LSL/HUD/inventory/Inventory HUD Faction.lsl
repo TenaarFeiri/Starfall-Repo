@@ -157,6 +157,21 @@ list ranksNameParsed(list tmp)
     }while(x<=y);
     return out;
 }
+resetAll()
+{
+    llSetTimerEvent(0);
+    leaving = FALSE;
+    llListenRemove(inviteListener);
+    llListenRemove(fMenuListener);
+    llListenRemove(npcListener);
+    sensed = [];
+    sensedNames = [];
+    sensing = FALSE;
+    inviteTarget = "";
+    npcStorePage = 1;
+    selectedRank = FALSE;
+    mode = FALSE;
+}
 default
 {
     state_entry()
@@ -178,6 +193,7 @@ default
         {
             if(str == startCall)
             {
+                resetAll();
                 fStatus = ping("status&func=whoAmI&usr=" + (string)llGetOwner());
             }
         }
@@ -185,15 +201,7 @@ default
 
     timer()
     {
-        llSetTimerEvent(0);
-        leaving = FALSE;
-        llListenRemove(inviteListener);
-        sensed = [];
-        sensedNames = [];
-        sensing = FALSE;
-        inviteTarget = "";
-        npcStorePage = 1;
-        selectedRank = FALSE;
+        resetAll();
     }
 
     listen(integer c, string n, key id, string m)
@@ -241,6 +249,7 @@ default
                         inviteTarget = (key)llList2String(sensed, pos);
                         inviteChannel = Key2AppChan(inviteTarget, 17);
                         inviteListener = llListen(inviteChannel, "", inviteTarget, "");
+                        llListenRemove(fMenuListener);
                         llDialog(inviteTarget, "You have been invited to join " + factionName + "!", ["Accept", "Decline"], inviteChannel);
                         llDialog(llGetOwner(), "Invited " + m + " to the faction.", ["OK"], fMenuChannel);
                     }
@@ -444,6 +453,7 @@ default
             {
                 llRegionSayTo(inviteTarget, Key2AppChan(inviteTarget, 1338), "factionupdate::" + (string)inviteTarget);
             }
+            llSetTimerEvent(0.1);
         }
         else if(request_id == fMissions)
         {
