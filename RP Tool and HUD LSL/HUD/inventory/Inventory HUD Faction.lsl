@@ -249,9 +249,10 @@ default
                         inviteTarget = (key)llList2String(sensed, pos);
                         inviteChannel = Key2AppChan(inviteTarget, 17);
                         inviteListener = llListen(inviteChannel, "", inviteTarget, "");
+                        sensing = FALSE;
                         llListenRemove(fMenuListener);
                         llDialog(inviteTarget, "You have been invited to join " + factionName + "!", ["Accept", "Decline"], inviteChannel);
-                        llDialog(llGetOwner(), "Invited " + m + " to the faction.", ["OK"], fMenuChannel);
+                        llDialog(llGetOwner(), "Invited " + m + " to the faction.", ["OK"], 5623781);
                     }
                     else
                     {
