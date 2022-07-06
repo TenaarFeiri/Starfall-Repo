@@ -289,6 +289,11 @@ default
     }
     http_response(key id, integer status, list metadata, string body)
     { // itemData = ping("show&usr=" + (string)llGetOwner() + "&func=getDetails&itemId="+(string)selectedItem);
+        if(~llSubStringIndex(body, "err:"))
+        {
+            llOwnerSay(llGetSubString(body, 4, -1));
+            return;
+        }
         if(id == itemData)
         {
             list tmp = llParseString2List(body, [":::"], []);
@@ -547,15 +552,6 @@ default
         destroying = FALSE;
         llListenRemove(dHandler);
         llListenRemove(echoL);
-    }
-    
-    attach(key id)
-    {
-        if(llGetAttached())
-        {
-            // If we're attached, then we've had our attach request accepted.
-            //llResetScript(); // So reset!
-        }
     }
 
 }

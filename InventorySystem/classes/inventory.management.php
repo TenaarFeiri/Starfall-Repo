@@ -462,11 +462,12 @@
             {
                 $key = $k;
             }
+            $originalAmount = $invData[1];
             $invData = explode(":", $inventory[$key]); // Inventory data for the thing!
             $invData[1] = ($invData[1] - $amount);
             if($invData[1] < 0)
             {
-                exit("err:You cannot destroy this many. You only have " . $invData[1] . ".");
+                exit("err:You cannot destroy this many. You only have " . $originalAmount . ".");
             }
             else if($invData[1] == 0)
             {
