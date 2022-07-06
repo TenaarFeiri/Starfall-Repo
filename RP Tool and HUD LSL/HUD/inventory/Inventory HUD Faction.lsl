@@ -27,10 +27,11 @@ key npcVendorMakeTransaction;
 key inviteTarget;
 key getRankList;
 key changeRank;
+key getMemberList;
 
 integer faction; // NOT FALSE when in a faction.
 integer leaving; // Are we leaving?
-integer mode = 1; // 1 - Main menu, 2 - Membership mangement, 3 - Change Ranks
+integer mode = 1; // 1 - Main menu, 2 - Membership mangement, 3 - Change Ranks, 4 - Member list management
 integer fMenuChannel;
 integer fMenuListener;
 integer fMenuPage = 1;
@@ -46,6 +47,7 @@ float timeout = 30;
 
 list sensed;
 list sensedNames;
+list targetChar;
 
 key ping(string data) // Ping the server
 {
@@ -293,6 +295,12 @@ default
                 llSetTimerEvent(timeout);
                 llSensor("", "", AGENT, 20, PI);
             }
+            else if(m == "Member List")
+            {
+                npcStorePage = 1;
+                mode = 4;
+                getMemberList = ping("membership&func=getMembers&usr=" + (string)llGetOwner() + "&faction=" + (string)faction + "&page=" + (string)npcStorePage);
+            }
         }
         else if(c == fMenuChannel && mode == 2)
         {
@@ -358,6 +366,49 @@ default
                 }    
             }
         }
+        else if(c == fMenuChannel && mode == 4)
+        {
+            if(m == "<<")
+            {
+                --npcStorePage;
+                if(npcStorePage < 1)
+                {
+                    npcStorePage = 1;
+                }
+                getMemberList = ping("membership&func=getMembers&usr=" + (string)llGetOwner() + "&faction=" + (string)faction + "&page=" + (string)npcStorePage);
+            }
+            else if(m == ">>")
+            {
+                ++npcStorePage;
+                getMemberList = ping("membership&func=getMembers&usr=" + (string)llGetOwner() + "&faction=" + (string)faction + "&page=" + (string)npcStorePage);
+            }
+            else if(m == "Kick")
+            {
+                llOwnerSay("Not functional.");
+            }
+            else
+            {
+                integer pos = llListFindList(sensedNames, [m]);
+                if(pos == -1)
+                {
+                    llSetTimerEvent(0.2);
+                    llOwnerSay(m + " is not a valid character name.");
+                }
+                else
+                {
+                    llSetTimerEvent(timeout);
+                    list tmp = llParseString2List(llList2String(sensed, pos), ["&&"], []);
+                    targetChar = tmp;
+                    llDialog(llGetOwner(), llList2String(targetChar, 1)
+                    + "\n" +
+                    "ID: " + llList2String(targetChar, 0) +
+                    "\n" +
+                    "Rank: " + llList2String(targetChar, 3),
+                    ["Cancel"], fMenuChannel
+                    );
+                }
+            }
+        }
         else if(c == npcChannel)
         {
 
@@ -408,13 +459,13 @@ default
 
     http_response(key request_id, integer status, list metadata, string body)
     {
-        if(~llSubStringIndex(body, "err:"))
-        {
-            llOwnerSay(llGetSubString(body, 4, -1));
-            return;
-        }
         if(request_id == fStatus)
         {
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
             list tmp = llParseStringKeepNulls(body, [fSeparator], []);
             string cmd = llList2String(tmp, 0);
             if(cmd == "nofaction")
@@ -447,6 +498,11 @@ default
         }
         else if(request_id == fMembership)
         {
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
             llOwnerSay(body);
             // Key2AppChan(key, 1338);
             // factionupdate::targetkey
@@ -458,32 +514,62 @@ default
         }
         else if(request_id == fMissions)
         {
-
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
         }
         else if(request_id == npcVendorGeneral)
         {
-
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
         }
         else if(request_id == npcVendorViewItem)
         {
-
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
         }
         else if(request_id == npcVendorItemData)
         {
-
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
         }
         else if(request_id == npcVendorMakeTransaction)
         {
-
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
         }
         else if(request_id == getRankList)
         {
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
             sensed = llParseString2List(body, [fSeparator], []);
             sensedNames = ranksNameParsed(sensed);
             llDialog(llGetOwner(), "Select rank ", paginate(1, sensedNames + ["«", "»"]), fMenuChannel);            
         }
         else if(request_id == changeRank)
         {
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
             list tmp = llParseString2List(body, [fSeparator], []);
             if(llList2String(tmp, 0) == "success")
             {
@@ -491,6 +577,36 @@ default
                 llRegionSayTo(inviteTarget, Key2AppChan(inviteTarget, 1338), "factionupdate::" + (string)inviteTarget);
                 llRegionSayTo(inviteTarget, 0, "Your rank has been updated.");
                 llSetTimerEvent(0.1);
+            }
+        }
+        else if(request_id == getMemberList)
+        {
+            if(~llSubStringIndex(body, "err:") && mode != 4)
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
+            if(~llSubStringIndex(body, "No members found on page"))
+            {
+                llSetTimerEvent(timeout);
+                llDialog(llGetOwner(), llGetSubString(body, 4, -1), paginate(1, ["<<", "Cancel", ">>"]), fMenuChannel);
+            }
+            else
+            {
+                llSetTimerEvent(timeout);
+                list tmp = llParseString2List(body, ["&&&"], []);
+                sensed = [];
+                sensedNames = [];
+                integer x;
+                integer y = (llGetListLength(tmp) - 1);
+                while(x<=y)
+                {
+                    string n = llGetSubString(llList2String(llParseString2List(llList2String(tmp, x), ["&&"], []), 1), 0, 12);
+                    sensedNames += [n];
+                    sensed += [llList2String(tmp, x)];
+                    ++x;
+                }
+                llDialog(llGetOwner(), "Members in your faction", paginate(1, sensedNames + ["<<", "Cancel", ">>"]), fMenuChannel);
             }
         }
     }

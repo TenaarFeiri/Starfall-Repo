@@ -462,8 +462,8 @@
             {
                 $key = $k;
             }
-            $originalAmount = $invData[1];
             $invData = explode(":", $inventory[$key]); // Inventory data for the thing!
+            $originalAmount = $invData[1];
             $invData[1] = ($invData[1] - $amount);
             if($invData[1] < 0)
             {

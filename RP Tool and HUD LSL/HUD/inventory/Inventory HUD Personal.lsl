@@ -289,13 +289,13 @@ default
     }
     http_response(key id, integer status, list metadata, string body)
     { // itemData = ping("show&usr=" + (string)llGetOwner() + "&func=getDetails&itemId="+(string)selectedItem);
-        if(~llSubStringIndex(body, "err:"))
-        {
-            llOwnerSay(llGetSubString(body, 4, -1));
-            return;
-        }
         if(id == itemData)
         {
+            if(~llSubStringIndex(body, "err:"))
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
             list tmp = llParseString2List(body, [":::"], []);
             charName = llList2String(tmp, -1);
             string cmd = llList2String(tmp, 0);
@@ -325,6 +325,11 @@ default
         }
         else if(id == itemUse)
         {
+            if(~llSubStringIndex(body, "err:"))
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
             list cmd = llParseString2List(body, ["::"], []);
             string objName = llGetObjectName();
             if(~llListFindList(cmd, ["charname"]))
@@ -347,6 +352,11 @@ default
         }
         else if(id == itemDestroy)
         {
+            if(~llSubStringIndex(body, "err:"))
+            {
+                llOwnerSay(llGetSubString(body, 4, -1));
+                return;
+            }
             list cmd = llParseString2List(body, ["::"], []);
             string objName = llGetObjectName();
             llSetObjectName("(ITEMS) " + llList2String(cmd, 0));
