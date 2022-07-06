@@ -14,6 +14,8 @@
         private $itemDetails;
         private $selectedItem;
         private $module = "inventory";
+
+
         function __construct($charId, $usr)
         {
             $this->charId = $charId;
@@ -27,6 +29,8 @@
                 print_r($this->user);
             }
         }
+
+
         function writeLog($log)
         {
             $charName = $this->charName;
@@ -55,6 +59,8 @@
                 exit("err:" . $e->getMessage());
             }
         }
+
+
         function getUsrData($usr)
         {
             $stmt = "SELECT * FROM users WHERE username = :usr OR uuid = :usr";
@@ -71,6 +77,8 @@
                 exit("err:" . $e->getMessage());
             }
         }
+
+
         function getName()
         {
             $rpt = connectToRptool();
@@ -87,10 +95,14 @@
             }
             return explode("=>", $do['titles'])[0];
         }
+
+
         function getCorruption()
         {
             return "corruption:::" . implode(":::", $this->corruption);
         }
+
+
         function updateCorruption()
         {
             $stmt = "UPDATE character_inventory SET fog_corruption= ?, demon_corruption = ?, mana_corruption = ?";
@@ -107,6 +119,8 @@
                 exit("err:" . $e->getMessage());
             }
         }
+
+
         function raiseCorruption($type, $value)
         {
             $key = "";
@@ -132,6 +146,8 @@
                 $this->corruption[$key] = 100;
             }
         }
+
+
         function lowerCorruption($type, $value)
         {
             $key = "";
@@ -157,6 +173,8 @@
                 $this->corruption[$key] = 0;
             }
         }
+
+
         function checkCondition()
         {
             $arr = array();
@@ -216,6 +234,8 @@
             $arr[] = $mana;
             return "condition::" . implode("::", $arr);
         }
+
+
         function getInventory()
         {
             $stmt = "SELECT item_1,item_2,item_3,item_4,item_5,item_6,item_7,item_8,item_9,money,fog_corruption,demon_corruption,mana_corruption,dream_rot FROM character_inventory WHERE char_id = ?";
@@ -269,6 +289,8 @@
                 exit("err:".$e->getMessage());
             }
         }
+
+
         function wildcards($arr)
         {
             $out = array();
@@ -281,6 +303,8 @@
             }
             return implode(",", $out);
         }
+
+
         function showData($itemId)
         {
             $out = array("echo");
@@ -293,6 +317,8 @@
             $out[] = $this->charName;
             return implode(":::", $out);
         }
+
+
         function strReplace($data, $itemId)
         {
             $search = array(
@@ -317,6 +343,8 @@
             );
             return str_replace($search, $replace, $data);
         }
+
+
         function findInventoryDetails($itemId)
         {
             foreach($this->rawInventory as $key => $val)
@@ -329,6 +357,8 @@
             }
             return false;
         }
+
+
         function useItem($itemId)
         {
             $item = $this->itemDetails[$itemId]; // Get all item details.
@@ -415,8 +445,10 @@
                 }
             }
             $this->pdo->commit(); // Commit at the end of the loop!
-            return $out;
+            return $out . "::" . $this->charName;
         }
+
+
         function destroyItem($itemId, $amount)
         {
             $item = $this->itemDetails[$itemId]; // Get all item details.
@@ -461,6 +493,12 @@
                 $this->pdo->rollBack();
                 exit("err:Could not successfully destroy the item.");
             }
+        }
+
+
+        function tradeItem($itemId, $amount, $target)
+        {
+
         }
     }
 ?>
