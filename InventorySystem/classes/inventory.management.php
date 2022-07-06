@@ -105,13 +105,12 @@
 
         function updateCorruption()
         {
-            $stmt = "UPDATE character_inventory SET fog_corruption= ?, demon_corruption = ?, mana_corruption = ?";
-            $this->pdo->beginTransaction();
+            $stmt = "UPDATE character_inventory SET fog_corruption= ?, demon_corruption = ?, mana_corruption = ? WHERE char_id = ?";
             $do = $this->pdo->prepare($stmt);
             try
             {
-                $do->execute([$this->corruption['fog_corruption'], $this->corruption['demon_corruption'], $this->corruption['mana_corruption']]);
-                $this->pdo->commit();
+                $do->execute([$this->corruption['fog_corruption'], $this->corruption['demon_corruption'], $this->corruption['mana_corruption'], $this->charId]);
+                //$this->pdo->commit();
             }
             catch(PDOException $e)
             {
