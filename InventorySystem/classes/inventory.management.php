@@ -439,7 +439,7 @@
                         exit("err:Corruption value defined, but type is neither fog, demon or mana.");
                     }
                     $amount = $var[2];
-                    $this->raiseCorruption($var[1], $amount);
+                    $this->raiseCorruption($var[1], $var[2]);
                     $this->updateCorruption();
                     $out = $out . "corruption::You feel something change within.::";
                 }
