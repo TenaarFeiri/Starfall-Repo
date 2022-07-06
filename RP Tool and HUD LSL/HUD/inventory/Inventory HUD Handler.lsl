@@ -80,7 +80,6 @@ list paginate( integer vIdxPag, list gLstMnu ){
       llList2List( vLstRtn, -9, -7 ) + llList2List( vLstRtn, -12, -10 );
 }
 list menu = ["Trade",
-"Destroy",
 "Check Gather",
 "Minigames",
 "Faction",
@@ -260,10 +259,6 @@ default
                 {
                     llMessageLinked(LINK_THIS, tradeNum, "::starttransaction::", NULL_KEY);
                 }
-                else if(m == "Destroy")
-                {
-                    llMessageLinked(LINK_THIS, tradeNum, "::startdeletion::", NULL_KEY);
-                }
                 else if(m == "Minigames")
                 {
                     if(rezzedGame == 2 && llGetUnixTime() < gameCooldown)
@@ -327,11 +322,6 @@ default
             {
                 sendDataToServer("func=personal&input=updateInventory");
             }
-        }
-        else if(num == (tradeNum - 2))
-        {
-            // This means we've deleted something.
-            sendDataToServer("func=personal&input=removeItem&data=" + body);
         }
     }
 }

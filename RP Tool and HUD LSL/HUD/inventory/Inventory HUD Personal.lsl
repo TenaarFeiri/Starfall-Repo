@@ -6,9 +6,11 @@ key banker = NULL_KEY;
 integer banking;
 string serverURL = "https://neckbeardsanon.xen.prgmr.com/rptool/inventory/inventory_management_handler.php?";
 key itemData;
-key itemUsage;
-key itemShow;
+key itemUse;
+key itemDestroy;
+key itemTrade;
 integer selectedItem;
+integer destroying;
 string itemName;
 string charName;
 key ping(string data)
@@ -82,7 +84,6 @@ integer Key2AppChan(key ID, integer App) { // Generate chat channel.
 
 prepare()
 {
-    dChan = FALSE;
     deleting = FALSE;
     deleteNum = FALSE;
     selected = FALSE;
@@ -259,7 +260,6 @@ vector rgb2sl( vector rgb )
 integer trading;
 integer tradeNum = 90900;
 integer timeout = 120;
-integer dChan;
 integer dHandler;
 integer isInteger(string data)
 {
@@ -288,7 +288,7 @@ default
         llMessageLinked(LINK_SET, 1, llGetScriptName(), "");
     }
     http_response(key id, integer status, list metadata, string body)
-    {
+    { // itemData = ping("show&usr=" + (string)llGetOwner() + "&func=getDetails&itemId="+(string)selectedItem);
         if(id == itemData)
         {
             list tmp = llParseString2List(body, [":::"], []);
@@ -296,7 +296,7 @@ default
             string cmd = llList2String(tmp, 0);
             if(cmd == "echo")
             {
-                list options = ["Show", "Destroy", "Cancel"];
+                list options = ["Show", "Discard", "Cancel"];
                 if(llList2String(tmp, 5) == "1") // If usable
                 {
                     options = ["Use"] + options;
@@ -310,9 +310,44 @@ default
                 desc = desc + "\n\nCan carry a maximum of " + llList2String(tmp, 4) + ".";
                 echoCh = Key2AppChan(llGetOwner(), 19);
                 echoL = llListen(echoCh, "", llGetOwner(), "");
+                if(destroying)
+                {
+                    destroying = FALSE;
+                }
                 llSetTimerEvent(30);
                 llDialog(llGetOwner(), desc, options, echoCh);
             }
+        }
+        else if(id == itemUse)
+        {
+            list cmd = llParseString2List(body, ["::"], []);
+            string objName = llGetObjectName();
+            if(~llListFindList(cmd, ["charname"]))
+            {
+                llSetObjectName("(ITEMS) " + llList2String(cmd, (llListFindList(cmd, ["charname"]) + 1)));
+            }
+            if(~llListFindList(cmd, ["tattle"]))
+            {
+                llSay(0, llList2String(cmd, (llListFindList(cmd, ["tattle"]) + 1)));
+            }
+            if(~llListFindList(cmd, ["corruption"]))
+            {
+                llMessageLinked(LINK_SET, 13371337, "::updatecorruption::", "");
+            }
+            if(~llListFindList(cmd, ["useditem"]))
+            {
+                llMessageLinked(LINK_THIS, tradeNum, "::updateinventory::", "");
+            }
+            llSetObjectName(objName);
+        }
+        else if(id == itemDestroy)
+        {
+            list cmd = llParseString2List(body, ["::"], []);
+            string objName = llGetObjectName();
+            llSetObjectName("(ITEMS) " + llList2String(cmd, 0));
+            llSay(0, "/me discarded " + llList2String(cmd, 2) + " " + llList2String(cmd, 1) + "(s).");
+            llSetObjectName(objName);
+            llMessageLinked(LINK_THIS, tradeNum, "::updateinventory::", "");
         }
     }    
     on_rez(integer start)
@@ -352,7 +387,7 @@ default
                 {
                     llOwnerSay("Empty.");
                 }
-                else if(!dChan)
+                else
                 {
                     if(!trading)
                     {
@@ -380,13 +415,6 @@ default
                         llSetTimerEvent(0);
                     }
                 }
-                else if(dChan)
-                {
-                    dHandler = llListen(dChan, "", llGetOwner(), "");
-                    deleting = (integer)llList2String(llParseString2List(llList2String(items, i), [":"], []), 0);
-                    selected = i;
-                    llTextBox(llGetOwner(), "How many of " + llList2String(names, i) + " would you like to destroy?", dChan);
-                }
             }
         }
         else if(function == tradeNum)
@@ -405,32 +433,12 @@ default
             {
                 llMessageLinked(LINK_THIS, (tradeNum + 1), "givingmoney|" + moneyName + "|" + (string)moneyAmount, "");
             }
-            else if(body == "::startdeletion::")
-            {
-                // Initiate the deletion process.
-                dChan = Key2AppChan(llGetOwner(), 9899);
-                llOwnerSay("Select the item you wish to destroy by touching its HUD icon.");
-                llSetTimerEvent(timeout);
-            }
         }
     }
     
     listen(integer c, string n, key id, string m)
     {
-        if(c == dChan)
-        {
-            if(isInteger(m))
-            {
-                // Let's delete!
-                if(deleting > 0)
-                {
-                    string out = (string)deleting + ":" + m;
-                    deleteNum = (integer)m;
-                    llMessageLinked(LINK_THIS, (tradeNum - 2), out, "");
-                }
-            }
-        }
-        else if(c == squawk)
+        if(c == squawk)
         {
             if(!~llSubStringIndex(m, "storingRequest:") ^ (id != banker && id != NULL_KEY))
             {
@@ -473,11 +481,23 @@ default
                 llSetTimerEvent(0.2);
             }
         }
-        else if(c == echoCh)
+        else if(c == echoCh && !destroying)
         {
+            /*
+                itemData = ping("show&usr=" + (string)llGetOwner() + "&func=getDetails&itemId="+(string)selectedItem);
+                key itemData;
+                key itemUse;
+                key itemDestroy;
+                key itemTrade;
+            */
             if(m == "Use")
             {
-                // Use code.
+                itemUse = ping("use&usr=" + (string)llGetOwner() + "&func=use&itemId=" + (string)selectedItem); // Use the item.
+            }
+            else if(m == "Discard")
+            {
+                destroying = TRUE;
+                llTextBox(llGetOwner(), "How many would you like to discard? Type 0 to cancel.", echoCh);
             }
             else if(m == "Show")
             {
@@ -489,6 +509,29 @@ default
                 llSetTimerEvent(0);
             }
         }
+        else if(c == echoCh && destroying)
+        {
+            destroying = FALSE;
+            if(m == "0")
+            {
+                llSetTimerEvent(0.2);
+                llListenRemove(echoL);
+                llDialog(llGetOwner(), "Canceled.", ["OK"], (echoCh - 1));
+            }
+            else
+            {
+                if(!isInteger(m))
+                {
+                    llListenRemove(echoL);
+                    llSetTimerEvent(0.2);
+                    llDialog(llGetOwner(), m + " is not a valid round number.", ["OK"], (echoCh - 1));
+                }
+                else
+                {
+                    itemDestroy = ping("item&usr=" + (string)llGetOwner() + "&func=destroy&itemId=" + (string)selectedItem + "&amount=" + m); // Destroy the item.
+                }
+            }
+        }
     }
     
     timer()
@@ -496,12 +539,12 @@ default
         // Time out!
         llSetTimerEvent(0);
         trading = FALSE;
-        dChan = FALSE;
         deleting = FALSE;
         deleteNum = FALSE;
         selected = FALSE;
         banking = FALSE;
         banker = NULL_KEY;
+        destroying = FALSE;
         llListenRemove(dHandler);
         llListenRemove(echoL);
     }
