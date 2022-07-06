@@ -157,7 +157,7 @@
 
     // If we survive both of these checks, we are gucci.
     // Time for the meat!
-    $mngr = new management($charId);
+    $mngr = new management($charId, $arr['usr']);
     if(isset($arr['show']) and isset($arr['itemId']) and !empty($arr['itemId']))
     {
         if($arr['func'] == "getDetails")
@@ -165,7 +165,7 @@
             echo $mngr->showData($arr['itemId']);
         }
     }
-    else if(isset($arr['use']) and !empty($arr['itemId']))
+    else if(isset($arr['use']) and !empty($arr['itemId']) and isset($arr['func']) and $arr['func'] == "use")
     {
         echo $mngr->useItem($arr['itemId']);
     }
@@ -207,6 +207,13 @@
             {
                 
             }
+        }
+    }
+    else if(isset($arr['item']))
+    {
+        if($arr['func'] == "destroy" and !empty($arr['itemId']) and !empty($arr['amount']))
+        {
+            echo $mngr->destroyItem($arr['itemId'], $arr['amount']); // Destroy items if possible.
         }
     }
 ?>

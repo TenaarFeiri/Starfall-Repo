@@ -4,20 +4,72 @@
     {
         private $charId;
         private $charName;
+        private $user;
         private $pdo;
         private $inventory;
+        private $rawInventory;
         private $corruption;
         private $dreamRot;
         private $money;
         private $itemDetails;
         private $selectedItem;
-        function __construct($charId)
+        private $module = "inventory";
+        function __construct($charId, $usr)
         {
             $this->charId = $charId;
             $this->pdo = connectToInventory();
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->charName = $this->getName();
+            $this->user = $this->getUsrData($usr);
             $this->getInventory();
+            if(_debug)
+            {
+                print_r($this->user);
+            }
+        }
+        function writeLog($log)
+        {
+            $charName = $this->charName;
+            // Write data to log database.
+            $stmt = "
+            INSERT INTO logs
+            VALUES (default,default,:usr,:uid,:charid,:charname,:module,:log)
+            ";
+            $do = $this->pdo->prepare($stmt);
+            try
+            {
+                $do->bindParam(":usr", $this->user['username']);
+                $do->bindParam(":uid", $this->user['uuid']);
+                $do->bindParam(":charid", $this->charId);
+                $do->bindParam(":charname", $charName);
+                $do->bindParam(":module", $this->module);
+                $do->bindParam(":log", $log);
+                if(!$do->execute())
+                {
+                    exit("err:Could not log the following action: " . $log ."\nError array:\n". print_r($do->errorInfo()));
+                }
+                // Do nothing if successful.
+            }
+            catch(PDOException $e)
+            {
+                exit("err:" . $e->getMessage());
+            }
+        }
+        function getUsrData($usr)
+        {
+            $stmt = "SELECT * FROM users WHERE username = :usr OR uuid = :usr";
+            $rpt = connectToRptool();
+            $do = $rpt->prepare($stmt);
+            $do->bindParam(":usr", $usr);
+            try
+            {
+                $do->execute();
+                return $do->fetch(PDO::FETCH_ASSOC);
+            }
+            catch(PDOException $e)
+            {
+                exit("err:" . $e->getMessage());
+            }
         }
         function getName()
         {
@@ -162,7 +214,7 @@
             $arr[] = $fog;
             $arr[] = $demon;
             $arr[] = $mana;
-            return "condition:::" . implode(":::", $arr);
+            return "condition::" . implode("::", $arr);
         }
         function getInventory()
         {
@@ -176,6 +228,7 @@
                 $this->money = $do['money'];
                 $this->dreamRot = $do['dream_rot'];
                 array_splice($do, 9);
+                $this->rawInventory = $do;
                 if(_debug)
                 {
                     print_r($this->corruption);
@@ -204,7 +257,7 @@
                 $do = $do->fetchAll(PDO::FETCH_ASSOC);
                 foreach($do as $var)
                 {
-                    $this->itemDetails[$var['id']] = array_slice($var, 1);
+                    $this->itemDetails[$var['id']] = $var;//array_slice($var, 1);
                 }
                 if(_debug)
                 {
@@ -240,47 +293,173 @@
             $out[] = $this->charName;
             return implode(":::", $out);
         }
-        function strReplace($data, $effect, $itemId)
+        function strReplace($data, $itemId)
         {
             $search = array(
                 "%name%",
                 "%itemName%",
-                "%effect%"
+                "%effectLowToMid%",
+                "%effectLowToHigh%",
+                "%effectMidToHigh%",
+                "%effectLow%",
+                "%effectMid%",
+                "%effectHigh%"
             );
             $replace = array(
                 $this->charName,
                 $this->itemDetails[$itemId]['name'],
-                $effect ? $effect : exit("err:Cannot use item $itemId. Item is not usable or declaration is malformed. Contact staff!")
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
             );
             return str_replace($search, $replace, $data);
         }
+        function findInventoryDetails($itemId)
+        {
+            foreach($this->rawInventory as $key => $val)
+            {
+                $var = explode(":", $val);
+                if($var[0] == $itemId)
+                {
+                    return [$key => $val];
+                }
+            }
+            return false;
+        }
         function useItem($itemId)
         {
-            if(!array_key_exists($itemId, $this->inventory))
+            $item = $this->itemDetails[$itemId]; // Get all item details.
+            if($item['usable'] == "0")
             {
-                return "err:This item does not exist in your active inventory.";
+                exit("err:Item is not usable.");
             }
-            $out = $this->parseUseEffect($itemId);
-        }
-        function parseUseEffect($item)
-        {
-            /*
-                Syntax:
-                consume - Consume 1x of item
-                heal,1/2/3 - Heals up to a low, moderate or high amount of damage respectively. RNG.
-                useMagic - Allowance for one spell.
-                openStorage - Opens remote storage. Overrides and deletes previous and subsequent commands.
-            */
-
-            $item = $this->itemDetails[$item];
-            $uses = explode(":", $item['use_effect']);
-        }
-        function effects($effect)
-        {
-            $effect = explode(",", $effect);
-            if($effect[0] == "consume")
+            $inventory = $this->findInventoryDetails($itemId);
+            $key;
+            foreach($inventory as $k => $val)
             {
-                
+                $key = $k;
+            }
+            if(!$inventory)
+            {
+                exit("err:Item does not exist in your inventory.");
+            }
+            if(_debug)
+            {
+                echo $key . PHP_EOL;
+                echo PHP_EOL . "Use item:" . PHP_EOL;
+                print_r($inventory);
+            }
+            $useFunc = explode(":", $item['use_effect']);
+            $inventory = explode(":", $inventory[$key]); // Create a new array. ID, Amount, Texture
+            $out = "";
+            $this->pdo->beginTransaction();
+            foreach($useFunc as $var)
+            {
+                $var = explode(",", $var);
+                if($var[0] == "destroy")
+                {
+                    if($inventory[1] < $var[1])
+                    {
+                        exit("err:You need " . $var[1] . " or more to use this.");
+                    }
+                    $inventory[1] = ($inventory[1] - $var[1]);
+                    if($inventory[1] <= 0)
+                    {
+                        $inventory = array("0");
+                    }
+                    $inventory = implode(":", $inventory);
+                    $stmt = "UPDATE character_inventory SET $key = ? WHERE char_id = $this->charId";
+                    $do = $this->pdo->prepare($stmt);
+                    try
+                    {
+                        $do->execute([$inventory]);
+                        $log = "Used and consumed " . $var[1] . "x " . $item['name'] . "(ID: " . $item['id'] . ").";
+                        $this->writeLog($log);
+                        $out = $out . "useditem::";
+                    }
+                    catch(PDOException $e)
+                    {
+                        $this->pdo->rollBack();
+                        exit("err:A database error has occurred. Could not use item ID $itemId. Fail point: destroy");
+                    }
+                }
+                else if($var[0] == "effect")
+                {
+                    $stmt = "SELECT * FROM items_effects WHERE id = ?";
+                    $do = $this->pdo->prepare($stmt);
+                    try
+                    {
+                        $do->execute([$var[1]]);
+                        $do = $do->fetch(PDO::FETCH_ASSOC);
+                        $out = $out . "tattle::" . $this->strReplace($do['effect_out'], $itemId) . "::";
+                    }
+                    catch(PDOException $e)
+                    {
+                        $this->pdo->rollBack();
+                        exit("err:A database error has occurred. Could not get effect id " . $var[1]);
+                    }
+                }
+                else if($var[0] == "raiseCorruption")
+                {
+                    if($var[1] != "demon" and $var[1] != "mana" and $var[1] != "fog")
+                    {
+                        exit("err:Corruption value defined, but type is neither fog, demon or mana.");
+                    }
+                    $amount = $var[2];
+                    $this->raiseCorruption($corruption, $amount);
+                    $this->updateCorruption();
+                    $out = $out . "corruption::You feel something change within.::";
+                }
+            }
+            $this->pdo->commit(); // Commit at the end of the loop!
+            return $out;
+        }
+        function destroyItem($itemId, $amount)
+        {
+            $item = $this->itemDetails[$itemId]; // Get all item details.
+            $inventory = $this->findInventoryDetails($itemId);
+            if(!$inventory)
+            {
+                exit("err:Item does not exist in your inventory.");
+            }
+            $key;
+            foreach($inventory as $k => $val)
+            {
+                $key = $k;
+            }
+            $invData = explode(":", $inventory[$key]); // Inventory data for the thing!
+            $invData[1] = ($invData[1] - $amount);
+            if($invData[1] < 0)
+            {
+                exit("err:You cannot destroy this many. You only have " . $invData[1] . ".");
+            }
+            else if($invData[1] == 0)
+            {
+                $invData = array("0");
+            }
+            $invData = implode(":", $invData);
+            if(_debug)
+            {
+                print_r($invData);
+            }
+            $stmt = "UPDATE character_inventory SET $key = ? WHERE char_id = $this->charId;";
+            $this->pdo->beginTransaction();
+            $do = $this->pdo->prepare($stmt);
+            try
+            {
+                $do->execute([$invData]);
+                $log = "Destroyed " . $amount . "x " . $item['name'] . " (ID: " . $item['id'] . ").";
+                $this->writeLog($log);
+                $this->pdo->commit();
+                return $this->charName . "::" . $item['name'] . "::" . $amount;
+            }
+            catch(PDOException $e)
+            {
+                $this->pdo->rollBack();
+                exit("err:Could not successfully destroy the item.");
             }
         }
     }
