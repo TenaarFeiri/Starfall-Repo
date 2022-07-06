@@ -445,7 +445,7 @@
                 }
             }
             $this->pdo->commit(); // Commit at the end of the loop!
-            return $out . "::" . $this->charName;
+            return $out . "::charname::" . $this->charName;
         }
 
 
