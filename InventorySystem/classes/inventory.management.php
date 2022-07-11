@@ -21,6 +21,7 @@
             $this->charId = $charId;
             $this->pdo = connectToInventory();
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
             $this->charName = $this->getName();
             $this->user = $this->getUsrData($usr);
             $this->getInventory();
@@ -264,23 +265,26 @@
                         $this->inventory[$var[0]] = array_slice($var, 1);
                     }
                 }
-                $wildcards = $this->wildcards($this->inventory);
-                $stmt = "SELECT * FROM items WHERE id IN ($wildcards)";
-                $do = $this->pdo->prepare($stmt);
-                $ids = array();
-                foreach($this->inventory as $key => $var)
+                if(count($this->inventory) > 0)
                 {
-                    $ids[] = $key;
-                }
-                $do->execute($ids);
-                $do = $do->fetchAll(PDO::FETCH_ASSOC);
-                foreach($do as $var)
-                {
-                    $this->itemDetails[$var['id']] = $var;//array_slice($var, 1);
-                }
-                if(_debug)
-                {
-                    print_r($this->itemDetails);
+                    $wildcards = $this->wildcards($this->inventory);
+                    $stmt = "SELECT * FROM items WHERE id IN ($wildcards)";
+                    $do = $this->pdo->prepare($stmt);
+                    $ids = array();
+                    foreach($this->inventory as $key => $var)
+                    {
+                        $ids[] = $key;
+                    }
+                    $do->execute($ids);
+                    $do = $do->fetchAll(PDO::FETCH_ASSOC);
+                    foreach($do as $var)
+                    {
+                        $this->itemDetails[$var['id']] = $var;//array_slice($var, 1);
+                    }
+                    if(_debug)
+                    {
+                        print_r($this->itemDetails);
+                    }
                 }
             }
             catch(PDOException $e)
