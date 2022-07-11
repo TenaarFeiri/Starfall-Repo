@@ -266,7 +266,7 @@ class trader {
         $do = $this->pdoInv->prepare($stmt);
         try
         {
-            $do->execute([$this->charId, $itemId]);
+            $do->execute([$this->charReceiving, $id]);
             $do = $do->fetch(PDO::FETCH_ASSOC);
             if($do)
             {
