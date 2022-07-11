@@ -98,9 +98,9 @@ class npc extends status
             }
             $blurb['blurb_text'] = $this->wildCardReplace($blurb['blurb_text']);
             $emote = $this->wildCardReplace($blurb['emote']);
-            if($emote == "")
+            if($emote == "" or $emote == " ")
             {
-                $emote = " ";
+                $emote = "noemote";
             }
             return $this->npcData['npc_name'] . "&&" . $blurb['blurb_text'] . "&&" . $blurb['choices'] . "&&" . $blurb['choice_data'] . "&&" . $emote;
         }
@@ -459,7 +459,7 @@ class npc extends status
             }
             $this->invPdo->commit();
             $out = $this->executeAction("showBlurb," . $this->npcActionArr[3]); // Get a blurb!
-            return $out . "updateInventory";
+            return $out . "&&updateInventory";
         }
     }
 
