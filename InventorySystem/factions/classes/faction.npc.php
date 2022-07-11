@@ -1,17 +1,21 @@
 <?php
 spl_autoload_register(function ($name) {
-    include 'faction.' . $name . '.php';
+    include_once 'faction.' . $name . '.php';
 });
+define('__ROOT__', dirname(dirname(dirname(__FILE__))));
+require_once(__ROOT__.'/classes/inventory.management.php');
 class npc extends status
 {
     private $npcData;
     private $npcPlayerDataArray;
     private $npcActionArr;
+    private $manager;
     private $module = "npc action";
     function __construct($usr, $npcId)
     {
         $this->npcData = $this->getNpcData($npcId); // Get data on the NPC.
         parent::__construct($usr); // Provide parent constructor with username or uuid so it can instantiate properly.
+        $this->manager = new management($this->character['charData']['character_id'], $usr);
         if(_debug)
         {
             print_r($this->character);
@@ -58,6 +62,9 @@ class npc extends status
         parent::connect("inventory"); // Connect to inventory, just in case it's not already done.
         /*
             Actions list:
+            GENERAL
+                - giveItem (itemId, amount)
+
             VENDORS
                 - viewGoods (page, optional faction req)
                 - viewItem (itemId)
@@ -381,6 +388,74 @@ class npc extends status
             }
             return "sale&&success&&" . $this->npcActionArr[2] . "&&" . $item['name'] . "&&" . $total;
         }
+        else if($action == "giveItem")
+        {
+            // giveItem (itemId, amount)
+            // $this->npcActionArr[1] = itemId
+            // $this->npcActionArr[2] = amount
+            // $this->npcActionArr[3] = blurb
+            if(count($this->npcActionArr) < 4 or count($this->npcActionArr) > 4)
+            {
+                exit("err:Invalid number of vars for giveItem. Must be exactly three: id, amount, blurb");
+            }
+            $inventorySlot = $this->manager->findInventoryDetails($this->npcActionArr[1]);
+            $item = $this->getItemDetails($this->npcActionArr[1]);
+            if($item['type'] === "unique")
+            {
+                // If item is unique, do a whole bunch of checks!
+                $inStorage = $this->manager->findInStorage($this->npcActionArr[1]);
+                if($inventorySlot or $inStorage)
+                {
+                    // End the script here.
+                    exit("err:You cannot receive any more of this unique item.");
+                }
+            }
+            if(!$inventorySlot)
+            {
+                $inventorySlot = $this->manager->findEmptySlot();
+            }
+            $key = array_keys($inventorySlot)[0]; // Get the first key with our result, as that's going to be what we're dealing with. Discard duplicate results for sanity protection.
+            $var = explode(":", $inventorySlot[$key]);
+            if($var[0] == 0)
+            {
+                if($this->npcActionArr[2] > $item['max_stack'])
+                {
+                    exit("err:NPC cannot give more of this item; would exceed max stack of " . $item['max_stack'] . ".");
+                }
+                $var[0] = $item['id'];
+                $var[1] = $this->npcActionArr[2];
+                $var[2] = $item['texture_name'];
+            }
+            else
+            {
+                $result = $this->npcActionArr[2] + $var[1];
+                if($result > $item['max_stack'])
+                {
+                    exit("err:NPC cannot give more of this item; would exceed max stack of " . $item['max_stack'] . ".");
+                }
+                $var[1] = $result;
+            }
+            $var = implode(":", $var);
+            $this->invPdo->beginTransaction();
+            $stmt = "UPDATE character_inventory SET $key = ? WHERE char_id = ?";
+            try
+            {
+                $do = $this->invPdo->prepare($stmt);
+                $do->execute([$var, $this->character['charData']['character_id']]);
+                $log = "NPC " . $this->npcData['npc_name'] . " (" . $this->npcData['npc_id'] . ") gave " . $this->character['charData']['char_name'] . " (" . $this->character['charData']['character_id'] . ") " .
+                        $this->npcActionArr[2] . "x " . $item['name'] . " (" . $item['id'] . ")."
+                ;
+                parent::writeLog($this->module, $log);
+            }
+            catch(PDOException $e)
+            {
+                $this->invPdo->rollBack();
+                exit("err:Could not give user item.");
+            }
+            $this->invPdo->commit();
+            $out = $this->executeAction("showBlurb," . $this->npcActionArr[3]); // Get a blurb!
+            return $out . "updateInventory";
+        }
     }
 
     function findInInventory($inventory, $item, $amount, $selling)
@@ -416,7 +491,7 @@ class npc extends status
 
     function getItemDetails($itemId)
     {
-        $stmt = "SELECT id,name,description,vendor_value,sell_price,max_stack,texture_name FROM items WHERE id = ?";
+        $stmt = "SELECT id,name,description,type,vendor_value,sell_price,max_stack,texture_name FROM items WHERE id = ?";
         $do = $this->invPdo->prepare($stmt);
         try
         {

@@ -357,6 +357,35 @@
             return false;
         }
 
+        function findEmptySlot()
+        {
+            foreach($this->rawInventory as $key => $val)
+            {
+                $var = explode(":", $val);
+                if($var[0] == 0)
+                {
+                    return [$key => $val];
+                }
+            }
+            return false;
+        }
+
+        function findInStorage($itemId)
+        {
+            $stmt = "SELECT * FROM character_storage WHERE char_id = ? AND item_id = ?";
+            $do = $this->pdo->prepare($stmt);
+            try
+            {
+                $do->execute([$this->charId, $itemId]);
+                $do = $do->fetch(PDO::FETCH_ASSOC);
+            }
+            catch(PDOException $e)
+            {
+                exit("err:" . $e->getMessage());
+            }
+            return $do;
+        }
+
 
         function useItem($itemId)
         {
@@ -494,7 +523,6 @@
                 exit("err:Could not successfully destroy the item.");
             }
         }
-
 
         function tradeItem($itemId, $amount, $target)
         {
