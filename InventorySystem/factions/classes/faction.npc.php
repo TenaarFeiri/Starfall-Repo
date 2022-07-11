@@ -97,7 +97,12 @@ class npc extends status
                 print_r($blurb);
             }
             $blurb['blurb_text'] = $this->wildCardReplace($blurb['blurb_text']);
-            return $this->npcData['npc_name'] . "&&" . $blurb['blurb_text'] . "&&" . $blurb['choices'] . "&&" . $blurb['choice_data'] . "&&" . $this->wildCardReplace($blurb['emote']);
+            $emote = $this->wildCardReplace($blurb['emote']);
+            if($emote == "")
+            {
+                $emote = " ";
+            }
+            return $this->npcData['npc_name'] . "&&" . $blurb['blurb_text'] . "&&" . $blurb['choices'] . "&&" . $blurb['choice_data'] . "&&" . $emote;
         }
         else if($action === "viewGoods") // VIEW GOODS
         {
