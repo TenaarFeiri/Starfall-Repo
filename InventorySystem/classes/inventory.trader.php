@@ -260,9 +260,36 @@ class trader {
         return "`".str_replace("`","``",$data)."`";
     }
 
+    function chkStorageForUnique($id)
+    {
+        $stmt = "SELECT * FROM character_storage WHERE char_id = ? AND item_id = ?";
+        $do = $this->pdoInv->prepare($stmt);
+        try
+        {
+            $do->execute([$this->charId, $itemId]);
+            $do = $do->fetch(PDO::FETCH_ASSOC);
+            if($do)
+            {
+                return true;
+            }
+        }
+        catch(PDOException $e)
+        {
+            exit("err:" . $e->getMessage());
+        }
+        return false;
+    }
+
     function checkInventorySpace($item, $amount) // Check inventory space of recipient, return slot number to put $id in.
     {
         $id = $item['id'];
+        if($item['type'] === "unique")
+        {
+            if($this->chkStorageForUnique($id))
+            {
+                exit("err:Target already possesses one of this unique item in their storage.");
+            }
+        }
         $stmt = "SELECT item_1,item_2,item_3,item_4,item_5,item_6,item_7,item_8,item_9 FROM character_inventory WHERE char_id = ?"; // Select all the inventory slots.
         $pdoObj = $this->pdoInv->prepare($stmt);
         try
@@ -293,6 +320,10 @@ class trader {
                 if($tmp[0] === $id) // Set the $exists parameter & note down which slot we're doing.
                 {
                     $exists = true;
+                    if($exists and $item['type'] === "unique")
+                    {
+                        exit("err:Target already possesses one of this unique item in their inventory.");
+                    }
                     $i = $iCount; // However, overwrite $i and confirm $exists if we find it in the inventory.
                     if(($tmp[1] + $amount) > $item['max_stack'])
                     {
@@ -387,7 +418,7 @@ class trader {
 
     function getItemDetails($id) // Get details of the item in question.
     {
-        $stmt = "SELECT id,max_stack,texture_name,name FROM items WHERE id = ?";
+        $stmt = "SELECT id,max_stack,type,texture_name,name FROM items WHERE id = ?";
         $pdoObj = $this->pdoInv->prepare($stmt);
         try
         {
