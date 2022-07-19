@@ -1,0 +1,22 @@
+# One new entry on each line!
+# Example notecard
+--admins # Who can change settings on a gathering node.
+Tenaar Feiri
+Ashtyn Ninetales
+Felix Stourmead
+Cylliano Dreamscape
+Ani Aunerfal
+Ash Hammerthall
+Anippe Resident
+Symphicat Resident
+F3NN3CF0X Resident
+Villyr Mistwood
+Aelyss Willowind
+Elerlissa Ashbourne
+Kaeldan Monk
+Athian Hoggard
+Jaecar Ulrik
+--gatherables # Which items can be gathered, by ID.
+29 # Seaweed
+1 # Iron Ore
+5 # Birch Wood
