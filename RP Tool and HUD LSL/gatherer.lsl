@@ -171,6 +171,7 @@ default
             {
                 deactivated = TRUE;
             }
+            func_Reset();
         }
         else
         {
