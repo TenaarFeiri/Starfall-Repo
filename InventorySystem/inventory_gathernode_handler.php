@@ -131,5 +131,13 @@ else if($arr['func'] == "getItemDetails")
         exit("err:items param not set.");
     }
 }
+else if($arr['func'] == "viewItem")
+{
+    if(empty($arr['itemId']) or !isset($arr['itemId']))
+    {
+        exit("err:No itemId defined.");
+    }
+    echo $gather->viewItem();
+}
 
 ?>

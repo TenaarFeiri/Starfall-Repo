@@ -54,7 +54,7 @@ class gathernode {
                 $csv[] = $item;
             }
         }
-        return implode(':@:', $csv);
+        return implode('::', $csv);
     }
 
     function getCharDetails($charId)
@@ -501,6 +501,10 @@ class gathernode {
             }
         }
         return implode("&&", $out);
+    }
+
+    function viewItem() {
+        return $this->arrayParse($this->item);
     }
 }
 ?>
