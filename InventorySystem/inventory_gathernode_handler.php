@@ -99,7 +99,7 @@ else
 }
 if(!isset($arr['uuid']) or empty($arr['uuid']))
 {
-    die("err:No target details provided.");
+    die("err:No uuid details provided.");
 }
 if(empty($arr))
 {
@@ -122,7 +122,14 @@ if($arr['func'] == "gatherItem")
 }
 else if($arr['func'] == "getItemDetails")
 {
-    echo $gather->dumpItemDetails();
+    if(!empty($arr['items']) and isset($arr['items']))
+    {
+        echo $gather->getItems($arr['items']);
+    }
+    else
+    {
+        exit("err:items param not set.");
+    }
 }
 
 ?>

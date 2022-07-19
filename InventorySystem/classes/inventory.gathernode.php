@@ -33,6 +33,10 @@ class gathernode {
         {
             die("err:" . $e->getMessage());
         }
+        if($itemId != 0 and $uuid == 1)
+        {
+            return;
+        }
         $this->settings = $this->getSettings();
         $this->item = $this->getItemDetails($itemId);
         $this->user = $this->getUserDetails($uuid);
@@ -51,11 +55,6 @@ class gathernode {
             }
         }
         return implode(':@:', $csv);
-    }
-
-    function dumpItemDetails()
-    {
-        return $this->arrayParse($this->item);
     }
 
     function getCharDetails($charId)
@@ -463,6 +462,45 @@ class gathernode {
         $out[] = ($this->inventory['gather_attempts'] - 1);
         $out[] = ($this->inventory['next_gather']);
         return implode("::", $out);
+    }
+
+    function getItems($items) { // Get all items from an array.
+        $items = explode(",", $items); // Create an array.
+        $validItems = array();
+        $q = array();
+        foreach($items as $var)
+        {
+            if($var != 0)
+            {
+                $q[] = "?";
+                $validItems[] = $var;
+            }
+        }
+        $q = implode(",", $q);
+        unset($items);
+        $stmt = "SELECT id,name,type FROM items WHERE id IN ($q);";
+        $do = $this->pdo->prepare($stmt);
+        try
+        {
+            $do->execute($validItems);
+            $do = $do->fetchAll(PDO::FETCH_ASSOC);
+        }
+        catch(PDOException $e)
+        {
+            exit("err:" . $e->getMessage());
+        }
+        //print_r($do);
+        unset($validItems);
+        unset($q);
+        $out = array();
+        foreach($do as $var)
+        {
+            if($var['type'] == "gathering")
+            {
+                $out[] = $var['id'] . "::" . $var['name'];
+            }
+        }
+        return implode("&&", $out);
     }
 }
 ?>
