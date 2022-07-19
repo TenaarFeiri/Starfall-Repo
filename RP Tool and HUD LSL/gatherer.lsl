@@ -59,7 +59,14 @@ default
     {
         if(llGetSubString(data, 0, 3) == "err:")
         {
-            llWhisper(0, "Server error: " + llGetSubString(data, 4, -1));
+            if(!inUse)
+            {
+                llWhisper(0, "Server error: " + llGetSubString(data, 4, -1));
+            }
+            else
+            {
+                llRegionSayTo(uId, 0, llGetSubString(data, 4, -1));
+            }
             return;
         }
         if(id == getItemDetails)
