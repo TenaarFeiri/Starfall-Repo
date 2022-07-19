@@ -35,6 +35,7 @@ integer inUse;
 integer selected;
 integer chan;
 integer lChan;
+integer deactivated;
 key getItemDetails;
 key viewItems;
 key gatherItems;
@@ -150,6 +151,17 @@ default
         {
             gatherItems = ping("func=gatherItem&itemId=" + (string)selected + "&uuid=" + (string)uId);
         }
+        else if(m == "Activate" || m == "Deactivate")
+        {
+            if(deactivated)
+            {
+                deactivated = FALSE;
+            }
+            else
+            {
+                deactivated = TRUE;
+            }
+        }
         else
         {
             integer pos = llListFindList(items, [m]);
@@ -165,6 +177,10 @@ default
 
     touch_end(integer total_number)
     {
+        if(deactivated && llListFindList(admins, [(string)llKey2Name(llDetectedKey(0))]) == -1)
+        {
+            return;
+        }
         if(uId != llDetectedKey(0) && inUse)
         {
             return;
@@ -178,6 +194,15 @@ default
         chan = Key2AppChan(uId, 130);
         lChan = llListen(chan, "", uId, "");
         llSetTimerEvent(time);
-        llDialog(uId, "You may gather the following here:", order_buttons(items + ["Cancel"]), chan);
+        string stf;
+        if(deactivated)
+        {
+            stf = "Activate";
+        }
+        else
+        {
+            stf = "Deactivate";
+        }
+        llDialog(uId, "You may gather the following here:", order_buttons(items + ["Cancel", stf]), chan);
     }
 }
