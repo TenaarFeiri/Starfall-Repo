@@ -139,7 +139,17 @@ default
             readCardId = llGetNotecardLine(cardName, ++cardLine);
         }
     }
-    
+    changed(integer change)
+    {
+        if(change & CHANGED_INVENTORY)
+        {
+            llResetScript();
+        }
+        if(change & CHANGED_REGION_START)
+        {
+            llResetScript();
+        }
+    }
     listen(integer c, string n, key id, string m)
     {
         if(m == "Cancel")
