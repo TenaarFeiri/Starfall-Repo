@@ -204,15 +204,15 @@ default
         chan = Key2AppChan(uId, 130);
         lChan = llListen(chan, "", uId, "");
         llSetTimerEvent(time);
-        string stf;
-        if(deactivated)
+        list stf = ["Cancel"];
+        if(deactivated && llListFindList(admins, [(string)llKey2Name(llDetectedKey(0))]) != -1)
         {
-            stf = "Activate";
+            stf += ["Activate"];
         }
-        else
+        else if(!deactivated && llListFindList(admins, [(string)llKey2Name(llDetectedKey(0))]) != -1)
         {
-            stf = "Deactivate";
+            stf += ["Deactivate"];
         }
-        llDialog(uId, "You may gather the following here:", order_buttons(items + ["Cancel", stf]), chan);
+        llDialog(uId, "You may gather the following here:", order_buttons(items + stf), chan);
     }
 }
