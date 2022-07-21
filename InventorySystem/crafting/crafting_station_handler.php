@@ -135,12 +135,12 @@
             exit("err:You are not the right job to view this menu.");
         }
     }
-    else if($arr['func'] === "create" and isset($arr['recipeId']) and !empty($arr['recipeId']))
+    else if($arr['func'] === "create" and isset($arr['recipeId']) and !empty($arr['recipeId']) and isset($arr['amount']) and !empty($arr['amount']))
     {
         if($craft->jobChk())
         {
             $create = new create($craft->getCharDetails(), $craft->getCharClassDetails());
-            $out = $create->create($arr['recipeId']);
+            $out = $create->create($arr['recipeId'], $arr['amount']);
             echo $out;
         }
         else

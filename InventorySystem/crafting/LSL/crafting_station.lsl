@@ -91,6 +91,18 @@ func_ParseRecipes(string data)
     }while(x<=i);
     llDialog(usr, "Select which recipe to craft:", func_OrderButtons(recipeFiltered), channel);
 }
+integer func_IsInteger(string var)
+{
+integer i;
+   for (i=0;i<llStringLength(var);++i)
+   {
+       if(!~llListFindList(["1","2","3","4","5","6","7","8","9","0"],[llGetSubString(var,i,i)]))
+       {
+           return FALSE;
+       }
+   }
+   return TRUE;
+}
 default
 {
     state_entry()
@@ -283,6 +295,17 @@ default
         {
             func_SendDataToServer("func=chkStats&uuid=" + (string)usr);
         }
+        else if(action == 4)
+        {
+            action = 3;
+            if(!func_IsInteger(m))
+            {
+                llDialog(usr, m + " is not a valid number.", ["OK"], -1337);
+                func_Timeout(FALSE);
+                return;
+            }
+            
+        }
         else if(m == "Yes")
         {
             /*
@@ -298,13 +321,6 @@ default
             else if(action == 2)
             {
                 func_SendDataToServer("func=remove&uuid=" + (string)usr);
-            }
-            else if(action == 3)
-            {
-                //llOwnerSay(llList2String(llParseString2List(llList2String(recipes, chosenRecipe), ["=>"], []), 0));
-                //func_Timeout(FALSE);
-                //return;
-                func_SendDataToServer("func=create&uuid=" + (string)usr+"&recipeId=" + llList2String(llParseString2List(llList2String(recipes, chosenRecipe), ["=>"], []), 0));
             }
         }
         else if(m == "No" || m == "Cancel")
@@ -327,7 +343,22 @@ default
         }
         else
         {
-            if(recipeBrowsing && chosenRecipe == -2)
+            if(action == 3)
+            {
+                if(!func_IsInteger(m))
+                {
+                    llDialog(usr, m + " is not a valid number.", ["OK"], -1337);
+                    func_Timeout(FALSE);
+                    return;
+                }
+                else if(m == "0" || m == "Cancel")
+                {
+                    llDialog(usr, "Canceled.", ["OK"], -1337);
+                    func_Timeout(FALSE);
+                }
+                func_SendDataToServer("func=create&uuid=" + (string)usr+"&recipeId=" + llList2String(llParseString2List(llList2String(recipes, chosenRecipe), ["=>"], []), 0) + "&amount=" + m);
+            }
+            else if(recipeBrowsing && chosenRecipe == -2)
             {
                 chosenRecipe = llListFindList(recipeFiltered, [m]);
                 if(chosenRecipe == -1)
@@ -353,9 +384,9 @@ default
                             info += llList2String(mData, 1) + "x " + llList2String(mData, 0) + "\n";
                         }
                     }while(x++<=i);
-                    info += "\nWould you like to craft this?";
+                    info += "\nHow many would you like to craft? 0 to cancel";
                     action = 3;
-                    llDialog(usr, info, ["Yes", "No"], channel);
+                    llTextBox(usr, info, channel);
                 }
             }
         }

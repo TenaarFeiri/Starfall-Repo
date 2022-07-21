@@ -122,7 +122,7 @@
             }
             return $do;
         }
-        function matchRecipeMaterials($recipe, $inventory)
+        function matchRecipeMaterials($recipe, $inventory, $amount)
         {
             // Return an array of keys for inventory slots containing our ingredients.
             $mats = array($recipe['material_one'], $recipe['material_two'], $recipe['material_three'], $recipe['material_four']);
@@ -155,7 +155,7 @@
                 $x = 0;
                 foreach($out as $o)
                 {
-                    if(explode(":", $inventory[$o])[1] < explode(":", $mats[$x++])[1])
+                    if(explode(":", $inventory[$o])[1] < (explode(":", $mats[$x++])[1] * $amount))
                     {
                         return false;
                     }
@@ -182,7 +182,7 @@
             }
             return false;
         }
-        function create($recipe)
+        function create($recipe, $num)
         {
             // Catch-all function to create a recipe.
             $inventory = $this->getCharInventory();
@@ -198,7 +198,7 @@
             $this->gItemDetails = $this->getItemDetails($recipe['result']);
             // First we generate an array matching crafting ingredients to keys.
             // If we don't have the materials, just fail!
-            $crafting = $this->matchRecipeMaterials($recipe, $inventory);
+            $crafting = $this->matchRecipeMaterials($recipe, $inventory, $num);
             if(!$crafting)
             {
                 die("err:You don't have enough materials to craft this item.");
@@ -244,7 +244,12 @@
                 $newData = explode(":", $inventory[$slot]); // Otherwise explode string into array: id, amount, texture
             }
             // Then calculate how much we would successfully craft.
-            $craftedAmount = random_int($recipe['result_min_amount'], $recipe['result_max_amount']);
+            $craftedAmount = 0;
+            $i = $num + 1;
+            while(--$i)
+            {
+                $craftedAmount = $craftedAmount + random_int($recipe['result_min_amount'], $recipe['result_max_amount']);
+            }
             if(empty($newData))
             {
                 // If we're adding to an empty slot, construct the new array.
@@ -256,9 +261,9 @@
             else
             {
                 // If we're adding to existing entry, check that the addition will not exceed max_stack.
-                if(($newData[1] + $recipe['result_max_amount']) > $this->gItemDetails['max_stack'])
+                if(($newData[1] + ($recipe['result_max_amount'] * $num)) > $this->gItemDetails['max_stack'])
                 {
-                    die("err:You need room for at least " . $recipe['result_max_amount'] . "x " . $this->gItemDetails['name'] . " to craft this item. You currently have " . $newData[1] . ".");
+                    die("err:You need room for at least " . ($recipe['result_max_amount'] * $num) . "x " . $this->gItemDetails['name'] . " to craft this item. You currently have " . $newData[1] . ".");
                 }
                 else
                 {
@@ -282,7 +287,11 @@
                 {
                     $tmp = explode(":", $inventory[$sl]);
                     $tmp[2] = $this->getItemDetails($tmp[0])['texture_name'];
-                    $tmp[1] = ($tmp[1] - (int)explode(":", $mats[$x++])[1]);
+                    $tmp[1] = ($tmp[1] - (int)(explode(":", $mats[$x++])[1] * $num));
+                    if($tmp[1] < 0)
+                    {
+                        exit("err:You don't have enough materials to complete this craft.");
+                    }
                     if($tmp[1] === 0)
                     {
                         unset($tmp);
