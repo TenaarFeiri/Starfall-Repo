@@ -391,8 +391,8 @@
             $stmt = "
                 SELECT id,recipe_name,material_one,material_two,material_three,material_four
                 FROM crafting_recipes
-                WHERE job_id = ? AND job_level_requirement <= ?;
-                ORDER BY job_level_requirement ASC LIMIT $firstNum, $lastNum
+                WHERE job_id = ? AND job_level_requirement <= ?
+                ORDER BY job_level_requirement ASC LIMIT $firstNum, $lastNum;
             ";
             $do = $this->invPdo->prepare($stmt);
             try
