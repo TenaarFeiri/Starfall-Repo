@@ -328,7 +328,12 @@
                 // And then we calculate experience gains!
                 if($this->characterJobDetails['level'] !== $this->characterJobDetails['max_level'])
                 {
-                    $exp = random_int($recipe['experience_min'], $recipe['experience_max']);
+                    $i = $num + 1;
+                    $exp = 0;
+                    while(--$i)
+                    {
+                        $exp = $exp + random_int($recipe['experience_min'], $recipe['experience_max']);
+                    }
                     $expResult = ($this->characterJobDetails['experience'] + $exp);
                 }
                 else
